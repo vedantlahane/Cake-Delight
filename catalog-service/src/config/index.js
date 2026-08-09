@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 async function connectDB(){
     try{
-        await mongoose.connect(process.env.MONGO_URL)
+        await mongoose.connect(process.env.MONGODB_URI)
+        console.log('Connected to MongoDB_Atlas')
     }
     catch(err){
         console.error('Error connecting to MongoDB:', err);
@@ -9,4 +10,4 @@ async function connectDB(){
     }
 }
 
-module.exports = connnectDB;
+module.exports = connectDB;
