@@ -9,6 +9,13 @@ app.get('/health',(req,res)=>{
     res.json({status:'ok'})
 });
 
+app.use((err, req, res, next) =>{
+    console.error(err.message);
+    if(err.name === 'CastError'){
+        return res.status(400).json({error: 'Invalid ID format'});
+    }
+    res.status(500).json({error: 'Internal Server Error'});
+})
 app.listen(3000,()=>{
     console.log('Catalog service is running on port 3000');
 });
