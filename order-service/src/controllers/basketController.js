@@ -53,3 +53,38 @@ exports.addItem = async (req, res, next) => {
         next(err);
     }
 }
+
+exports.updateItem = async (req,res, next) =>{
+    try{
+        const {qauantity} = req.body;
+        const {userId, cakeid} = req.params;
+
+        const basket = await Basket.findOne({userId});
+        if(!basket) return res.status(404).json({error: 'Basket not found'});
+
+        const itemIndex = basket.items.findIndex(item => item.cakeId.toString() === cakeId);
+        if(itemIndex === -1) return res.status(404).json({error: 'Item not in basket'});
+        basket.items[itemIndex].quantity = quantity;
+        await basket.save();
+        res.json(basket);
+    }
+    catch(err){
+        next(err);
+    }
+};
+
+exports.reqoveItem = async (req, res, next) => {
+    try{
+        const {userId, cakeId} = req.params;
+        const basket = await Basket.findOne({userId});
+        if(!basket) return res.status(404).json({error: 'Basket not found'});
+        const originalLength = basket.items.length;
+        basket.items = basket.items.filter(item => item.cakeId.toString() !== cakeId);
+        if(basket.items.length === originalLength) return res.status(404).json({error: 'Item not in basket'});
+        await basket.save();
+        res.json(basket);
+    }
+    catch(err){
+        next(err);
+    }
+};
