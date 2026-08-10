@@ -2,14 +2,14 @@ const mongoose = require('mongoose');
 
 const basketItemSchema = new mongoose.Schema({
     cakeId: {
-        type: mongoose.Schema.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         required: true
     },
-    name:{
+    name: {
         type: String,
         required: true
     },
-    price : {
+    price: {
         type: Number,
         required: true
     },
@@ -18,14 +18,15 @@ const basketItemSchema = new mongoose.Schema({
         required: true,
         default: 1
     }
+}, { _id: false });
 
-},{_id: false});
-
-const backetScheme = new mongoose.Schema({
+const basketSchema = new mongoose.Schema({
     userId: {
-        type: String, required: true, unique: true
+        type: String,
+        required: true,
+        unique: true
     },
     items: [basketItemSchema]
 }, { timestamps: true });
 
-module.exports = mongoose.model('Basket', backetScheme);
+module.exports = mongoose.model('Basket', basketSchema);

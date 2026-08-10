@@ -1,21 +1,26 @@
 const express = require('express');
-const connectDB = require('./config/index')
+const connectDB = require('./config/index');
 const cakeRoutes = require('./routers/cakeRoutes');
 require('dotenv').config();
+
 connectDB();
 const app = express();
+app.use(express.json());
+
 app.use('/cakes', cakeRoutes);
-app.get('/health',(req,res)=>{
-    res.json({status:'ok'})
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok' });
 });
 
-app.use((err, req, res, next) =>{
+app.use((err, req, res, next) => {
     console.error(err.message);
-    if(err.name === 'CastError'){
-        return res.status(400).json({error: 'Invalid ID format'});
+    if (err.name === 'CastError') {
+        return res.status(400).json({ error: 'Invalid ID format' });
     }
-    res.status(500).json({error: 'Internal Server Error'});
-})
-app.listen(3000,()=>{
-    console.log('Catalog service is running on port 3000');
+    res.status(500).json({ error: 'Internal Server Error' });
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Catalog service is running on port ${PORT}`);
 });

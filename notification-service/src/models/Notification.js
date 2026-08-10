@@ -1,22 +1,23 @@
 const mongoose = require('mongoose');
 const notificationSchema = new mongoose.Schema({
     orderId: {
-        type: mongoose.Schema.Types.ObjectId, required: true
-    },
-    userId:{
-        type: String, 
+        type: mongoose.Schema.Types.ObjectId,
         required: true
     },
-    channel:{
-        type: SString,
+    userId: {
+        type: String,
+        required: true
+    },
+    channel: {
+        type: String,
         enum: ['email', 'sms', 'in-app'],
         default: 'email'
     },
-    status:{
+    status: {
         type: String,
-        enum:  ['pending', 'sent', 'failed'],
+        enum: ['pending', 'sent', 'failed'],
         default: 'pending'
     }
-}, { timestamps: true});
+}, { timestamps: true });
 
-module.exports = mongoose.model('Notification',notificationSchema);
+module.exports = mongoose.model('Notification', notificationSchema);

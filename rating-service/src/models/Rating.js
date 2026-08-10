@@ -4,19 +4,19 @@ const ratingSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         required: true
     },
-    userI: {
-        type: String, required: true;
+    userId: {
+        type: String,
+        required: true
     },
-    score:{
+    score: {
         type: Number,
         required: true,
         min: 1,
         max: 5
     },
-    comment:{
-        type: String,
+    comment: {
+        type: String
     }
-}, {timestamps: true});
+}, { timestamps: true });
 
-
-module.exports = mongoose.model('Rating', ratingSchema);
+module.exports = mongoose.model('Rating', ratingSchema);
