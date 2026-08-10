@@ -1,6 +1,6 @@
 const express = require('express');
 const connectDB = require('./config/index');
-const cakeRoutes = require('./routers/cakeRoutes');
+const cakeRoutes = require('./routes/cakeRoutes');
 require('dotenv').config();
 
 connectDB();

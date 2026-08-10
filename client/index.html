@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Cake Delight</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Cake Delight</h1>
+
+  <div id="auth-section">
+    <input type="text" id="login-userId" placeholder="Enter a userId">
+    <button id="login-btn">Login</button>
+    <span id="logged-in-as"></span>
+  </div>
+
+  <h2>Cakes</h2>
+  <form id="filter-form">
+    <input type="text" id="name" placeholder="Search by name">
+    <input type="text" id="category" placeholder="Category">
+    <input type="number" id="minPrice" placeholder="Min price">
+    <input type="number" id="maxPrice" placeholder="Max price">
+    <button type="submit">Filter</button>
+  </form>
+  <div id="cake-list"></div>
+
+  <h2>Basket</h2>
+  <div id="basket-items"></div>
+  <p id="basket-total"></p>
+  <button id="checkout-btn">Checkout</button>
+  <div id="order-confirmation"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
