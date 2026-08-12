@@ -1,97 +1,107 @@
-# Cake Delight — Cloud-Native Microservices Architecture
+# Cake Delight
 
-Welcome to **Cake Delight**, a robust cloud-native application built using a microservices architecture. This project serves as a comprehensive Capstone Project, demonstrating core engineering principles including service independence, loose coupling, event-driven communication, containerization, and Kubernetes orchestration.
+This is my capstone project — a cloud-native microservices app for a made-up cake shop called Cake Delight. You can browse cakes, add them to a basket, check out, get notified by email, and rate what you bought. It's built as five separate Node.js services sitting behind an API gateway, backed by MongoDB and RabbitMQ, and it can run either in Docker or on Kubernetes.
 
-## Project Overview
+The point of building it this way wasn't to make a cake shop — it's to actually practice the stuff that's hard to get right just from reading about it: splitting a system into services that own their own data, keeping them loosely coupled, using events instead of direct calls where it matters, and deploying the whole thing instead of just running `npm start` forever on my laptop.
 
-Cake Delight allows customers to:
-1. **Browse** a catalog of artisanal cakes (with filtering).
-2. **Authenticate** securely using a simulated OTP-based login.
-3. **Manage Basket** by adding, updating, and removing cakes.
-4. **Checkout** to finalize orders.
-5. **Receive Notifications** asynchronously when orders are successfully placed.
-6. **Rate & Review** purchased cakes, updating global average scores.
+## What it does
 
-## Architecture
+- Browse the cake catalog, search by name, filter by category and price range
+- Log in using an OTP (one-time password) flow — enter your email, get a code, type it in
+- Add cakes to a basket, change quantities using the +/− buttons, remove items
+- Checkout — creates a real order, empties the basket, and fires off a notification in the background
+- See your order confirmation in the bell icon in the top navbar without refreshing
+- Rate a cake you liked and see the average score update
 
-The solution uses an API Gateway as the single entry point. Each microservice independently manages its own capability and data store.
+There are two login roles: **Admin** and **Customer**. They don't see each other's stuff. Admins can see all orders and all notifications, manage the cake catalog, and view all ratings. Customers only see their own basket, their own orders, and their own notifications.
 
-- **Frontend Client (`client`)**: A modern, responsive single-page web app (HTML/CSS/JS) styled with glassmorphism and modern UI paradigms.
-- **API Gateway (`gateway`)**: Routes traffic to respective services, handles simulated OTP authentication, and verifies JWT tokens.
-- **Catalog Service (`catalog-service`)**: Manages cake inventory and provides querying/filtering APIs. 
-- **Order Service (`order-service`)**: Manages shopping baskets, processes checkouts, and persists order histories.
-- **Rating Service (`rating-service`)**: Handles user ratings and calculates real-time average scores for cakes.
-- **Notification Service (`notification-service`)**: An asynchronous consumer that listens for `order.completed` events and processes order confirmation notifications.
-- **MongoDB**: Primary persistent data store (each service has its own logical database/collection).
-- **RabbitMQ**: Message broker enabling event-driven asynchronous communication between Order and Notification services.
+## How it's put together
 
-## Getting Started
+There's one API gateway in front of everything, and it's the only thing the frontend ever talks to directly. Behind it are four services, each owning its own slice of the data:
 
-You can run Cake Delight either through Docker Compose (recommended for simple local testing) or deploy it to a Kubernetes cluster.
+- **catalog-service** — owns the cake data. Customers can browse it freely. Only admins can add, edit, or delete cakes.
+- **order-service** — owns baskets and orders. This is the one service that calls another service directly: when you add a cake to your basket, it asks catalog-service for the real price instead of trusting whatever the browser sends. That's on purpose — otherwise someone could just edit the request and buy a cake for a penny.
+- **rating-service** — owns ratings, and calculates the average score using a MongoDB aggregation pipeline instead of pulling every rating into JavaScript and averaging it there.
+- **notification-service** — doesn't get called directly by anything. It just sits and listens on RabbitMQ for an `order.completed` event, and sends a confirmation email whenever one shows up.
 
-### Option 1: Docker Compose (Local Testing)
+Order and Notification talk through RabbitMQ instead of Order calling Notification's API directly. That's the deliberately async part — checkout shouldn't have to wait for an email to send before it tells you your order went through.
 
-1. Ensure Docker Desktop or Docker Engine is running.
-2. Navigate to the `docker/` directory:
-   ```bash
-   cd docker
-   ```
-3. Build and spin up the entire cluster:
-   ```bash
-   docker-compose up --build -d
-   ```
-4. Access the applications:
-   - **Web UI**: [http://localhost](http://localhost)
-   - **API Gateway**: [http://localhost:8080](http://localhost:8080)
-   - **RabbitMQ Dashboard**: [http://localhost:15672](http://localhost:15672) (guest / guest)
+## Tech stack
 
-5. *Optional*: Seed the database with sample cakes (if empty):
-   ```bash
-   docker exec -it cakedelight-catalog node src/seed.js
-   ```
+- Node.js + Express for all five services (4 microservices + 1 gateway)
+- MongoDB with Mongoose — one MongoDB instance, but each service uses its own database inside it, so they're still logically separate
+- RabbitMQ for the `order.completed` event between order-service and notification-service
+- JWT tokens for authentication — the gateway validates them before letting requests through to protected routes
+- Plain HTML/CSS/JS for the frontend, no framework — kept it simple on purpose so I could spend more time on the backend and infrastructure side
+- Nginx serves the frontend as a static site inside a container
+- Docker for containers, Docker Compose for running locally, Kubernetes for running it like it'd actually be deployed
+- Mailpit standing in for a real email provider — notifications actually land somewhere you can look at them without needing real SMTP credentials
 
-### Option 2: Kubernetes Deployment
+## Running it
 
-1. Ensure you have a running Kubernetes cluster (e.g., `minikube start`) and `kubectl` configured.
-2. From the project root, apply the manifests located in the `k8s/` directory:
-   ```bash
-   kubectl apply -f k8s/
-   ```
-3. Check deployment status:
-   ```bash
-   kubectl get pods -n cake-delight
-   ```
-4. Expose the services (if using Minikube):
-   ```bash
-   minikube service client -n cake-delight
-   ```
-   *(Alternatively, access the Client via NodePort 30000 and Gateway via NodePort 30080 on your cluster IP).*
+There are two ways to run this. Pick one.
 
----
+**Docker Compose** — easiest, good for local testing. Full steps are in [`docker/README.md`](docker/README.md), short version:
+```bash
+cd docker
+docker compose up --build -d
+```
+Then open http://localhost.
 
-## Simulating Authentication (OTP Flow)
+**Kubernetes** — closer to how this would actually run in production. Tested locally with minikube. Full steps are in [`k8s/README.md`](k8s/README.md), short version:
+```bash
+minikube start --driver=docker
+# build images inside minikube's Docker environment first — see k8s/README.md
+kubectl apply -f k8s/
+minikube service client -n cake-delight
+```
 
-To log in without requiring external SMS/Email APIs:
-1. Type a username (e.g., `alice`) into the **User ID** field and click **Send OTP**.
-2. A simulated SMS notification containing a 6-digit OTP will appear near the login bar.
-3. Enter the 6-digit OTP into the input field and click **Login**.
-4. You will be authenticated with a JWT token stored securely in your browser's local storage.
+## Logging in
 
-## End-to-End Demo Flow
+Go to http://localhost/auth.html (or click Sign In from the catalog page).
 
-1. **Browse & Filter**: View the catalog on the main page. Test the search and price filter options.
-2. **Login**: Use the OTP simulation flow described above to log in.
-3. **Add to Basket**: Add your favorite cakes to the shopping basket. Modify quantities or remove items.
-4. **Checkout**: Click "Proceed to Checkout". The Order Service will create the order, empty your basket, and publish an event to RabbitMQ.
-5. **View Notifications**: Check the "Order Notifications" sidebar. The Notification Service will have asynchronously consumed the event and generated an order confirmation.
-6. **Rate the Cake**: Click the **Rate** button on a purchased cake, assign 1-5 stars, and leave a review. Watch the catalog's average rating update dynamically!
+**Quick Demo Login** is the easiest way — there are two buttons right on the login page:
+- **Admin Demo Login** — logs in as `admin@cakedelight.com`
+- **Customer Demo Login** — logs in as `customer@cakedelight.com`
 
----
+These automatically request an OTP, fetch it from the gateway's demo endpoint, and log you in without you having to type anything.
 
-## Built With
-- **Node.js & Express.js** (Microservices API)
-- **Vanilla JS & CSS** (Frontend)
-- **MongoDB & Mongoose** (Database)
-- **RabbitMQ & amqplib** (Event Messaging)
-- **Docker & Docker Compose** (Containerization)
-- **Kubernetes** (Orchestration)
+If you want to use the full OTP flow manually:
+1. Type an email address (e.g. `customer@cakedelight.com`) and click **Send OTP**
+2. The gateway generates a code — you'll see it appear in the login UI as a hint (since this is a demo, it shows the code instead of sending it somewhere you can't see)
+3. Type the 6-digit code and click **Sign In**
+
+After logging in you'll be redirected to the catalog. Admins go straight to the admin dashboard.
+
+## Trying the whole flow
+
+1. Log in as Customer using the Quick Demo Login button
+2. Browse the catalog, try the search bar and price filters
+3. Add a couple of cakes to the basket, use the +/− buttons to change quantities, remove one
+4. Click **Secure Checkout**
+5. Click the bell icon in the top navbar — your order confirmation should be there. It arrived via RabbitMQ in the background while the checkout was processing, not because the frontend went looking for it.
+6. Go back to the catalog, rate a cake, and see the star rating update
+
+To see the admin view: sign out, then log in as Admin. You'll get to see all orders across all customers, all notifications, and the full catalog management panel.
+
+## Things I simplified on purpose
+
+Worth being upfront about rather than hoping nobody asks:
+
+- Ratings don't check whether you actually bought the cake — anyone who's logged in can rate anything
+- All four services' data lives in one MongoDB instance. They still use separate databases inside it, so the data is logically separated, but in a real deployment each service would have its own database server
+- Notifications go through Mailpit, not a real email provider. If you open http://localhost:8025 after a checkout you'll see the confirmation land there. Swapping in real SMTP later would be a one-env-variable change, not a code rewrite.
+- Login doesn't check a real password — it just checks that you know the OTP that was generated for that userId
+
+## Repo layout
+
+```
+catalog-service/      Cake catalog API — CRUD for cakes, public reads, admin-only writes
+order-service/        Basket + order API — adds items, handles checkout, publishes order.completed
+rating-service/       Ratings API — submit ratings, read per-cake averages
+notification-service/ Consumes order.completed from RabbitMQ, sends confirmation via Mailpit
+gateway/              Single entry point — routes requests, handles auth/JWT, enforces RBAC
+client/               Frontend — HTML/CSS/JS served by nginx
+docker/               Docker Compose setup, see docker/README.md
+k8s/                  Kubernetes manifests, see k8s/README.md
+```
