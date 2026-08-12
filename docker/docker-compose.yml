@@ -1,20 +1,27 @@
-version: '3.8'
+version: "3.8"
 
 services:
+
+  # =========================
+  # MongoDB
+  # =========================
   mongodb:
-    image: mongo:6.0
+    image: mongo:latest
     container_name: cakedelight-mongodb
     ports:
       - "27017:27017"
     environment:
-      - MONGO_INITDB_DATABASE=cakedelight
+      MONGO_INITDB_DATABASE: cakedelight
     volumes:
       - mongo-data:/data/db
     networks:
       - cakedelight-net
 
+  # =========================
+  # RabbitMQ
+  # =========================
   rabbitmq:
-    image: rabbitmq:3-management
+    image: rabbitmq:latest
     container_name: cakedelight-rabbitmq
     ports:
       - "5672:5672"
@@ -22,12 +29,16 @@ services:
     networks:
       - cakedelight-net
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
 
+  # =========================
+  # Catalog Service
+  # =========================
   catalog-service:
+    image: catalog-service:latest
     build:
       context: ../catalog-service
       dockerfile: Dockerfile
@@ -35,14 +46,18 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - PORT=3000
-      - MONGODB_URI=mongodb://mongodb:27017/cakedelight-catalog
+      PORT: "3000"
+      MONGODB_URI: mongodb://mongodb:27017/cakedelight-catalog
     depends_on:
       - mongodb
     networks:
       - cakedelight-net
 
+  # =========================
+  # Order Service
+  # =========================
   order-service:
+    image: order-service:latest
     build:
       context: ../order-service
       dockerfile: Dockerfile
@@ -50,10 +65,10 @@ services:
     ports:
       - "3001:3001"
     environment:
-      - PORT=3001
-      - MONGODB_URI=mongodb://mongodb:27017/cakedelight-order
-      - CATALOG_SERVICE_URL=http://catalog-service:3000
-      - RABBITMQ_URL=amqp://rabbitmq:5672
+      PORT: "3001"
+      MONGODB_URI: mongodb://mongodb:27017/cakedelight-order
+      CATALOG_SERVICE_URL: http://catalog-service:3000
+      RABBITMQ_URL: amqp://rabbitmq:5672
     depends_on:
       - mongodb
       - rabbitmq
@@ -61,7 +76,11 @@ services:
     networks:
       - cakedelight-net
 
+  # =========================
+  # Rating Service
+  # =========================
   rating-service:
+    image: rating-service:latest
     build:
       context: ../rating-service
       dockerfile: Dockerfile
@@ -69,14 +88,18 @@ services:
     ports:
       - "3002:3002"
     environment:
-      - PORT=3002
-      - MONGODB_URI=mongodb://mongodb:27017/cakedelight-rating
+      PORT: "3002"
+      MONGODB_URI: mongodb://mongodb:27017/cakedelight-rating
     depends_on:
       - mongodb
     networks:
       - cakedelight-net
 
+  # =========================
+  # Notification Service
+  # =========================
   notification-service:
+    image: notification-service:latest
     build:
       context: ../notification-service
       dockerfile: Dockerfile
@@ -84,16 +107,21 @@ services:
     ports:
       - "3003:3003"
     environment:
-      - PORT=3003
-      - MONGODB_URI=mongodb://mongodb:27017/cakedelight-notification
-      - RABBITMQ_URL=amqp://rabbitmq:5672
+      PORT: "3003"
+      MONGODB_URI: mongodb://mongodb:27017/cakedelight-notification
+      RABBITMQ_URL: amqp://rabbitmq:5672
+      SMTP_HOST: mailpit
     depends_on:
       - mongodb
       - rabbitmq
     networks:
       - cakedelight-net
 
+  # =========================
+  # API Gateway
+  # =========================
   gateway:
+    image: gateway:latest
     build:
       context: ../gateway
       dockerfile: Dockerfile
@@ -101,12 +129,13 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - PORT=8080
-      - CATALOG_SERVICE_URL=http://catalog-service:3000
-      - ORDER_SERVICE_URL=http://order-service:3001
-      - RATING_SERVICE_URL=http://rating-service:3002
-      - NOTIFICATION_SERVICE_URL=http://notification-service:3003
-      - JWT_SECRET=cakedelight-secret-key-2026
+      PORT: "8080"
+      CATALOG_SERVICE_URL: http://catalog-service:3000
+      ORDER_SERVICE_URL: http://order-service:3001
+      RATING_SERVICE_URL: http://rating-service:3002
+      NOTIFICATION_SERVICE_URL: http://notification-service:3003
+      JWT_SECRET: cakedelight-secret-key-2026
+      SMTP_HOST: mailpit
     depends_on:
       - catalog-service
       - order-service
@@ -115,7 +144,11 @@ services:
     networks:
       - cakedelight-net
 
+  # =========================
+  # Client
+  # =========================
   client:
+    image: client:latest
     build:
       context: ../client
       dockerfile: Dockerfile
@@ -127,9 +160,27 @@ services:
     networks:
       - cakedelight-net
 
+  # =========================
+  # Mailpit
+  # =========================
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: cakedelight-mailpit
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    networks:
+      - cakedelight-net
+
+# =========================
+# Networks
+# =========================
 networks:
   cakedelight-net:
     driver: bridge
 
+# =========================
+# Volumes
+# =========================
 volumes:
   mongo-data:

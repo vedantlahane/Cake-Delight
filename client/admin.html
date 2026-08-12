@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — Cake Delight</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .admin-container { padding: 2rem; }
+    .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem; }
+    .table-container { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); border-radius: 12px; padding: 1.5rem; box-shadow: 0 8px 32px rgba(0,0,0,0.05); }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { text-align: left; padding: 12px; border-bottom: 1px solid rgba(0,0,0,0.05); }
+    th { font-weight: 600; color: var(--primary); }
+    .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+    .status-sent { background: #e0f8e0; color: #15803d; }
+    .status-failed { background: #fee2e2; color: #b91c1c; }
+    .status-completed { background: #e0f0ff; color: #0369a1; }
+  </style>
+</head>
+<body>
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="brand">
+        <span class="logo-icon">👑</span>
+        <span class="brand-name">Cake Delight Admin</span>
+      </div>
+      <div>
+        <a href="index.html" class="btn btn-outline" style="text-decoration: none;">Back to Store</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container admin-container">
+    <h1>System Dashboard</h1>
+    <p>Monitor real-time orders and email notifications across the platform.</p>
+
+    <div class="dashboard-grid">
+      <!-- Orders Table -->
+      <div class="table-container">
+        <h2>Global Orders</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>User</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="admin-orders-list">
+            <tr><td colspan="5">Loading orders...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Notifications Table -->
+      <div class="table-container">
+        <h2>System Notifications</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>User</th>
+              <th>Channel</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="admin-notifications-list">
+            <tr><td colspan="5">Loading notifications...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

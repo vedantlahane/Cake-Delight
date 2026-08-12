@@ -1,10 +1,12 @@
 const express = require('express');
 const connectDB = require('./config/index');
 const cakeRoutes = require('./routes/cakeRoutes');
+const morgan = require('morgan');
 require('dotenv').config();
 
 connectDB();
 const app = express();
+app.use(morgan('combined'));
 app.use(express.json());
 
 app.use('/cakes', cakeRoutes);

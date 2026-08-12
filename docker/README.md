@@ -3,8 +3,8 @@
 This directory contains the Docker Compose configuration to spin up the entire **Cake Delight** microservices application stack locally.
 
 ## Prerequisites
-- Docker Engine 20+
-- Docker Compose v2+
+- Docker Engine 29+
+- Docker Compose v5+
 
 ## Services Included
 - **MongoDB**: Centralized persistence (`27017`)
@@ -20,7 +20,7 @@ This directory contains the Docker Compose configuration to spin up the entire *
 
 ### 1. Build and Start All Containers
 ```bash
-docker-compose up --build -d
+docker compose up --build -d
 ```
 
 ### 2. Verify Running Containers

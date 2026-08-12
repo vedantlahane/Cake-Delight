@@ -21,7 +21,7 @@ app.use('/api/cakes', createProxyMiddleware({
     target: process.env.CATALOG_SERVICE_URL || 'http://localhost:3000',
     changeOrigin: true,
     pathRewrite: {
-        '^/api/cakes': '/cakes'
+        '^/': '/cakes/'
     }
 }));
 
@@ -29,7 +29,7 @@ app.use('/api/basket',authMiddleware, createProxyMiddleware({
     target: process.env.ORDER_SERVICE_URL || 'http://localhost:3001',
     changeOrigin: true,
     pathRewrite: {
-        '^/api/basket': '/basket'
+        '^/': '/basket/'
     },
     on:{
         proxyReq:(proxyReq,req,res)=>{
@@ -44,7 +44,7 @@ app.use('/api/orders', authMiddleware,createProxyMiddleware({
     target: process.env.ORDER_SERVICE_URL || 'http://localhost:3001',
     changeOrigin: true,
     pathRewrite: {
-        '^/api/orders': '/orders'
+        '^/': '/orders/'
     },
     on:{
         proxyReq:(proxyReq,req,res)=>{
@@ -59,7 +59,7 @@ app.use('/api/ratings', createProxyMiddleware({
     target: process.env.RATING_SERVICE_URL || 'http://localhost:3002',
     changeOrigin: true,
     pathRewrite: {
-        '^/api/ratings': '/ratings'
+        '^/': '/ratings/'
     }
 }));
 
@@ -67,7 +67,7 @@ app.use('/api/notifications', createProxyMiddleware({
     target: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3003',
     changeOrigin: true,
     pathRewrite: {
-        '^/api/notifications': '/notifications'
+        '^/': '/notifications/'
     }
 }));
 

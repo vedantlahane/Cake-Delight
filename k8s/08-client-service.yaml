@@ -18,7 +18,7 @@ spec:
       containers:
         - name: client
           image: client:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Never
           ports:
             - containerPort: 80
           resources:

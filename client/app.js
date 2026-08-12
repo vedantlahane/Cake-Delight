@@ -25,8 +25,8 @@ function authHeaders() {
   return headers;
 }
 
-// ---------- login / logout ----------
-document.getElementById('login-btn').addEventListener('click', async () => {
+// ---------- login / logout / otp ----------
+document.getElementById('request-otp-btn').addEventListener('click', async () => {
   const userIdInput = document.getElementById('login-userId');
   const userId = userIdInput.value.trim();
   if (!userId) {
@@ -35,25 +35,66 @@ document.getElementById('login-btn').addEventListener('click', async () => {
   }
 
   try {
-    const response = await fetch(`${GATEWAY_BASE}/auth/login`, {
+    const response = await fetch(`${GATEWAY_BASE}/auth/request-otp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId })
     });
 
     if (!response.ok) {
-      alert('Login failed. Check server status.');
+      alert('Failed to request OTP. Check server status.');
       return;
     }
 
     const data = await response.json();
+    
+    // Simulate SMS by showing it on the screen
+    const otpMsgEl = document.getElementById('otp-message');
+    otpMsgEl.textContent = data.simulatedMessage;
+    
+    // Switch to step 2
+    document.getElementById('login-step-1').style.display = 'none';
+    document.getElementById('login-step-2').style.display = 'flex';
+  } catch (err) {
+    console.error('Request OTP error:', err);
+    alert('Failed to connect to gateway. Is it running?');
+  }
+});
+
+document.getElementById('login-btn').addEventListener('click', async () => {
+  const userId = document.getElementById('login-userId').value.trim();
+  const otp = document.getElementById('login-otp').value.trim();
+  
+  if (!userId || !otp) {
+    alert('Please enter OTP');
+    return;
+  }
+
+  try {
+    const response = await fetch(`${GATEWAY_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, otp })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(`Login failed: ${data.error}`);
+      return;
+    }
+
+    // Clear simulated message
+    document.getElementById('otp-message').textContent = '';
+    document.getElementById('login-otp').value = '';
+
     saveSession(userId, data.token);
     showLoggedInState();
     loadBasket();
     loadNotifications();
   } catch (err) {
     console.error('Login error:', err);
-    alert('Failed to connect to gateway. Is it running?');
+    alert('Failed to connect to gateway.');
   }
 });
 
@@ -67,23 +108,24 @@ document.getElementById('logout-btn').addEventListener('click', () => {
 function showLoggedInState() {
   const userId = getUserId();
   const loggedInBadge = document.getElementById('logged-in-as');
-  const loginBtn = document.getElementById('login-btn');
+  const step1 = document.getElementById('login-step-1');
+  const step2 = document.getElementById('login-step-2');
   const logoutBtn = document.getElementById('logout-btn');
-  const userIdInput = document.getElementById('login-userId');
   const checkoutBtn = document.getElementById('checkout-btn');
 
   if (userId && getToken()) {
     loggedInBadge.textContent = `👤 ${userId}`;
     loggedInBadge.style.display = 'inline-block';
     logoutBtn.style.display = 'inline-block';
-    loginBtn.style.display = 'none';
-    userIdInput.style.display = 'none';
+    step1.style.display = 'none';
+    step2.style.display = 'none';
+    document.getElementById('otp-message').textContent = '';
     checkoutBtn.disabled = false;
   } else {
     loggedInBadge.style.display = 'none';
     logoutBtn.style.display = 'none';
-    loginBtn.style.display = 'inline-block';
-    userIdInput.style.display = 'inline-block';
+    step1.style.display = 'flex';
+    step2.style.display = 'none';
     checkoutBtn.disabled = true;
   }
 }

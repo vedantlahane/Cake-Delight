@@ -23,11 +23,34 @@ async function connectConsumer() {
                     const content = JSON.parse(msg.content.toString());
                     console.log('Received order completion event in Notification Service:', content);
 
+                    let status = 'sent';
+                    try {
+                        const nodemailer = require('nodemailer');
+                        const transporter = nodemailer.createTransport({
+                            host: process.env.SMTP_HOST || 'localhost',
+                            port: 1025,
+                            ignoreTLS: true
+                        });
+                        
+                        let itemsList = content.items.map(i => `${i.quantity}x ${i.name} ($${i.price})`).join('\n');
+                        
+                        await transporter.sendMail({
+                            from: '"Cake Delight" <noreply@cakedelight.com>',
+                            to: `${content.userId}@example.com`,
+                            subject: `Order Confirmation - ${content.orderId}`,
+                            text: `Thank you for your order!\n\nOrder ID: ${content.orderId}\nTotal: $${content.total.toFixed(2)}\n\nItems:\n${itemsList}`
+                        });
+                        console.log(`Order confirmation email sent to ${content.userId}@example.com`);
+                    } catch (emailErr) {
+                        console.error('Failed to send order confirmation email:', emailErr);
+                        status = 'failed';
+                    }
+
                     const notification = new Notification({
                         orderId: content.orderId,
                         userId: content.userId,
                         channel: 'email',
-                        status: 'sent'
+                        status: status
                     });
 
                     await notification.save();

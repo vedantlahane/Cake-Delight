@@ -18,7 +18,7 @@ spec:
       containers:
         - name: notification-service
           image: notification-service:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Never
           ports:
             - containerPort: 3003
           env:
@@ -28,6 +28,8 @@ spec:
               value: "mongodb://mongodb.cake-delight.svc.cluster.local:27017/cakedelight-notification"
             - name: RABBITMQ_URL
               value: "amqp://rabbitmq.cake-delight.svc.cluster.local:5672"
+            - name: SMTP_HOST
+              value: "mailpit.cake-delight.svc.cluster.local"
           resources:
             requests:
               memory: "128Mi"

@@ -16,13 +16,22 @@
       <div class="brand">
         <span class="logo-icon">🎂</span>
         <span class="brand-name">Cake Delight</span>
+        <a href="admin.html" style="margin-left: 20px; font-size: 0.9rem; text-decoration: none; color: var(--primary);">🛡️ Admin Dashboard</a>
       </div>
       <div class="auth-bar" id="auth-section">
-        <input type="text" id="login-userId" placeholder="Enter User ID (e.g. alex)" />
-        <button id="login-btn" class="btn btn-primary">Login</button>
+        <div id="login-step-1" style="display: flex; gap: 8px;">
+          <input type="text" id="login-userId" placeholder="Enter User ID (e.g. alex)" />
+          <button id="request-otp-btn" class="btn btn-primary">Send OTP</button>
+        </div>
+        <div id="login-step-2" style="display: none; gap: 8px;">
+          <input type="text" id="login-otp" placeholder="Enter 6-digit OTP" />
+          <button id="login-btn" class="btn btn-primary">Login</button>
+        </div>
         <div id="logged-in-as" class="user-badge" style="display: none;"></div>
         <button id="logout-btn" class="btn btn-outline" style="display: none;">Logout</button>
       </div>
+      <!-- OTP Simulation message container -->
+      <div id="otp-message" style="position: absolute; top: 60px; right: 20px; color: var(--primary); font-size: 0.9rem; font-weight: bold;"></div>
     </div>
   </header>
 

@@ -2,6 +2,15 @@ const Order = require('../models/Order');
 const Basket = require('../models/Basket');
 const { publishOrderCompleted } = require('../services/eventPublisher');
 
+exports.getAllOrders = async (req, res, next) => {
+    try {
+        const orders = await Order.find().sort({ createdAt: -1 });
+        res.json(orders);
+    } catch (err) {
+        next(err);
+    }
+};
+
 exports.getOrder = async (req, res, next) => {
     try {
         const { userId } = req.params;
