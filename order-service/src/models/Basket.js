@@ -13,6 +13,10 @@ const basketItemSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    imageUrl: {
+        type: String,
+        default: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=300&q=80'
+    },
     quantity: {
         type: Number,
         required: true,

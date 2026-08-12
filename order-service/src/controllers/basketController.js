@@ -40,6 +40,7 @@ exports.addItem = async (req, res, next) => {
                 cakeId,
                 name: cake.name,
                 price: cake.price,
+                imageUrl: cake.imageUrl,
                 quantity: quantity || 1
             });
         }

@@ -40,6 +40,20 @@
           Admin
         </a>
         <div id="auth-section" style="display:flex; gap:8px; align-items:center;">
+          <!-- Notification Bell Dropdown -->
+          <div class="nav-notifications" id="nav-notifications-container" style="display:none;">
+            <button id="nav-bell-btn" class="btn-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              <span id="nav-bell-badge" class="badge-count" style="display:none;">0</span>
+            </button>
+            <div id="nav-notifications-dropdown" class="notifications-dropdown" style="display:none;">
+               <div class="dropdown-header">
+                 <span>Notifications</span>
+                 <button id="refresh-notifications-btn" class="btn btn-xs btn-outline">Refresh</button>
+               </div>
+               <div id="notifications-list" class="notifications-list"></div>
+            </div>
+          </div>
           <a href="auth.html" id="login-nav-btn" class="btn btn-primary btn-sm">Sign In</a>
           <div id="logged-in-as" class="user-badge" style="display:none;">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -105,19 +119,7 @@
           </div>
         </div>
 
-        <!-- Notifications -->
-        <div class="card" style="margin-top: 20px;">
-          <div class="notifications-section-title">
-            <span>Order Notifications</span>
-            <button id="refresh-notifications-btn" class="btn btn-sm btn-outline">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-              Refresh
-            </button>
-          </div>
-          <div id="notifications-list" class="notifications-list">
-            <div class="empty-msg">No notifications yet.</div>
-          </div>
-        </div>
+        <!-- Notifications removed from sidebar -->
       </div>
     </div>
   </div>

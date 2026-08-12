@@ -65,12 +65,14 @@ function updateNavbarAuth() {
   const logoutBtn     = document.getElementById('logout-btn');
   const loginNavBtn   = document.getElementById('login-nav-btn');
   const adminNavLink  = document.getElementById('admin-nav-link');
+  const navNotifsContainer = document.getElementById('nav-notifications-container');
 
   if (userId && token) {
     if (loggedInBadge) loggedInBadge.style.display = 'flex';
     if (userIdText)    userIdText.textContent = userId;
     if (logoutBtn)     logoutBtn.style.display = 'inline-flex';
     if (loginNavBtn)   loginNavBtn.style.display = 'none';
+    if (navNotifsContainer) navNotifsContainer.style.display = 'block';
     // Only show Admin link for admin role
     if (adminNavLink)  adminNavLink.style.display = role === 'admin' ? 'flex' : 'none';
   } else {
@@ -78,6 +80,7 @@ function updateNavbarAuth() {
     if (logoutBtn)     logoutBtn.style.display = 'none';
     if (loginNavBtn)   loginNavBtn.style.display = 'inline-flex';
     if (adminNavLink)  adminNavLink.style.display = 'none';
+    if (navNotifsContainer) navNotifsContainer.style.display = 'none';
   }
 }
 
@@ -506,13 +509,17 @@ function renderBasket(basket) {
 
   container.innerHTML = basket.items.map(item => `
     <div class="basket-item">
+      <img src="${item.imageUrl || 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=300&q=80'}" alt="${item.name}" class="basket-item-img">
       <div class="basket-item-info">
         <span class="basket-item-title">${item.name}</span>
         <span class="basket-item-price">₹${item.price} each</span>
       </div>
       <div class="basket-item-controls">
-        <input type="number" id="qty-${item.cakeId}" value="${item.quantity}" min="1" max="99"
-          onchange="updateItemQuantity('${item.cakeId}')">
+        <div class="qty-toggle">
+          <button class="qty-btn" onclick="updateItemQuantity('${item.cakeId}', ${item.quantity - 1})">−</button>
+          <span class="qty-display">${item.quantity}</span>
+          <button class="qty-btn" onclick="updateItemQuantity('${item.cakeId}', ${item.quantity + 1})">+</button>
+        </div>
         <button class="btn btn-danger btn-xs" onclick="removeItem('${item.cakeId}')" title="Remove">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
         </button>
@@ -534,9 +541,7 @@ function updateBasketTotal(total) {
   if (totalEl)       totalEl.textContent = fmt;
 }
 
-window.updateItemQuantity = async function(cakeId) {
-  const input    = document.getElementById(`qty-${cakeId}`);
-  const quantity = Number(input.value);
+window.updateItemQuantity = async function(cakeId, quantity) {
   if (quantity < 1) return;
 
   try {
@@ -618,13 +623,32 @@ if (checkoutBtn) {
 // ============================================================
 // NOTIFICATIONS (customer — own only)
 // ============================================================
+const navBellBtn = document.getElementById('nav-bell-btn');
+const navDropdown = document.getElementById('nav-notifications-dropdown');
+
+if (navBellBtn && navDropdown) {
+  navBellBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isVisible = navDropdown.style.display === 'flex';
+    navDropdown.style.display = isVisible ? 'none' : 'flex';
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!navBellBtn.contains(e.target) && !navDropdown.contains(e.target)) {
+      navDropdown.style.display = 'none';
+    }
+  });
+}
+
 async function loadNotifications() {
   const userId    = getUserId();
   const container = document.getElementById('notifications-list');
+  const badge     = document.getElementById('nav-bell-badge');
   if (!container) return;
 
   if (!userId) {
-    container.innerHTML = '<div class="empty-msg">Please sign in to view notifications.</div>';
+    container.innerHTML = '<div class="empty-msg" style="padding:16px;text-align:center;">Please sign in to view notifications.</div>';
+    if (badge) badge.style.display = 'none';
     return;
   }
 
@@ -634,19 +658,29 @@ async function loadNotifications() {
     const notifications = await res.json();
 
     if (!notifications || notifications.length === 0) {
-      container.innerHTML = '<div class="empty-msg">No notifications yet.</div>';
+      container.innerHTML = '<div class="empty-msg" style="padding:16px;text-align:center;">No notifications yet.</div>';
+      if (badge) badge.style.display = 'none';
       return;
     }
 
+    if (badge) {
+      badge.textContent = notifications.length;
+      badge.style.display = 'block';
+    }
+
+    // Sort notifications by date (newest first)
+    notifications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
     container.innerHTML = notifications.map(n => `
       <div class="notification-item">
-        <div class="notification-title">
-          📬 Order Confirmation
-          <span class="badge ${n.status}" style="margin-left:8px;">${n.status}</span>
+        <div class="notification-title" style="font-weight:600;font-size:0.9rem;">
+          ${n.channel === 'email' ? '📬' : '🔔'} Order Confirmation
         </div>
-        <div class="notification-sub">Order ID: ${n.orderId} · Channel: ${n.channel}</div>
-        <div class="notification-time">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <div class="notification-sub" style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">
+          Order ID: <code>${n.orderId}</code><br>Channel: ${n.channel}
+        </div>
+        <div class="notification-time" style="font-size:0.75rem;color:var(--text-muted);margin-top:6px;display:flex;align-items:center;gap:4px;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           ${new Date(n.createdAt).toLocaleString()}
         </div>
       </div>`).join('');
@@ -676,6 +710,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (document.getElementById('basket-items')) {
     await loadBasket();
-    await loadNotifications();
   }
+  await loadNotifications();
 });
