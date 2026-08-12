@@ -16,9 +16,15 @@ services:
       - mongo-data:/data/db
     networks:
       - cakedelight-net
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
   # =========================
-  # RabbitMQ
+  # RabbitMQ (with Management UI)
   # =========================
   rabbitmq:
     image: rabbitmq:latest
@@ -29,10 +35,23 @@ services:
     networks:
       - cakedelight-net
     healthcheck:
-      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 30s
+
+  # =========================
+  # Mailpit (email mock)
+  # =========================
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: cakedelight-mailpit
+    ports:
+      - "8025:8025"   # Web UI
+      - "1025:1025"   # SMTP
+    networks:
+      - cakedelight-net
 
   # =========================
   # Catalog Service
@@ -49,9 +68,11 @@ services:
       PORT: "3000"
       MONGODB_URI: mongodb://mongodb:27017/cakedelight-catalog
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
     networks:
       - cakedelight-net
+    restart: on-failure
 
   # =========================
   # Order Service
@@ -70,11 +91,15 @@ services:
       CATALOG_SERVICE_URL: http://catalog-service:3000
       RABBITMQ_URL: amqp://rabbitmq:5672
     depends_on:
-      - mongodb
-      - rabbitmq
-      - catalog-service
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      catalog-service:
+        condition: service_started
     networks:
       - cakedelight-net
+    restart: on-failure
 
   # =========================
   # Rating Service
@@ -91,9 +116,11 @@ services:
       PORT: "3002"
       MONGODB_URI: mongodb://mongodb:27017/cakedelight-rating
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
     networks:
       - cakedelight-net
+    restart: on-failure
 
   # =========================
   # Notification Service
@@ -112,10 +139,13 @@ services:
       RABBITMQ_URL: amqp://rabbitmq:5672
       SMTP_HOST: mailpit
     depends_on:
-      - mongodb
-      - rabbitmq
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - cakedelight-net
+    restart: on-failure
 
   # =========================
   # API Gateway
@@ -143,9 +173,10 @@ services:
       - notification-service
     networks:
       - cakedelight-net
+    restart: on-failure
 
   # =========================
-  # Client
+  # Client (Nginx)
   # =========================
   client:
     image: client:latest
@@ -157,18 +188,6 @@ services:
       - "80:80"
     depends_on:
       - gateway
-    networks:
-      - cakedelight-net
-
-  # =========================
-  # Mailpit
-  # =========================
-  mailpit:
-    image: axllent/mailpit:latest
-    container_name: cakedelight-mailpit
-    ports:
-      - "8025:8025"
-      - "1025:1025"
     networks:
       - cakedelight-net
 

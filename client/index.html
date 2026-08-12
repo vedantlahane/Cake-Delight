@@ -3,77 +3,92 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cake Delight — Catalog</title>
+  <title>Cake Delight — Handcrafted Cakes Delivered</title>
+  <meta name="description" content="Browse our collection of handcrafted artisan cakes. Filter by category, price, and more. Add to basket and checkout with ease.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Header / Navigation -->
+  <!-- Toast container -->
+  <div id="toast-container"></div>
+
+  <!-- Navbar -->
   <header class="navbar">
     <div class="nav-container">
       <a href="index.html" class="brand">
-        <!-- SVG Cake Icon -->
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/>
           <path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/>
-          <path d="M2 21h20"/>
-          <path d="M7 8v2"/>
-          <path d="M12 8v2"/>
-          <path d="M17 8v2"/>
-          <path d="M7 4h.01"/>
-          <path d="M12 4h.01"/>
-          <path d="M17 4h.01"/>
+          <path d="M2 21h20"/><path d="M7 8v2"/><path d="M12 8v2"/><path d="M17 8v2"/>
+          <path d="M7 4h.01"/><path d="M12 4h.01"/><path d="M17 4h.01"/>
         </svg>
         <span class="brand-name">Cake Delight</span>
       </a>
-      
+
       <div class="nav-links">
-        <a href="basket.html" class="nav-link">
+        <a href="index.html" class="nav-link active">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Catalog
+        </a>
+        <a href="basket.html" class="nav-link" id="basket-nav-link">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
           Basket
         </a>
-        <a href="admin.html" class="nav-link">
+        <!-- Admin link — shown only for admin role by JS -->
+        <a href="admin.html" class="nav-link" id="admin-nav-link" style="display:none;">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
           Admin
         </a>
-        
-        <div id="auth-section" style="display: flex; gap: 10px; align-items: center;">
+
+        <div id="auth-section" style="display:flex; gap:8px; align-items:center;">
           <a href="auth.html" id="login-nav-btn" class="btn btn-primary btn-sm">Sign In</a>
-          <div id="logged-in-as" class="user-badge" style="display: none;">
+          <div id="logged-in-as" class="user-badge" style="display:none;">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             <span id="user-id-text"></span>
           </div>
-          <button id="logout-btn" class="btn btn-outline btn-sm" style="display: none;">Logout</button>
+          <button id="logout-btn" class="btn btn-outline btn-sm" style="display:none;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Sign Out
+          </button>
         </div>
       </div>
     </div>
   </header>
 
   <div class="container">
-    <div class="page-header">
-      <h1>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        Our Catalog
-      </h1>
-      <p style="color: var(--text-muted);">Handcrafted Cakes, Delivered with Care</p>
+    <!-- Hero Banner -->
+    <div class="catalog-hero">
+      <div class="hero-text">
+        <h1>🎂 Our Cake Catalog</h1>
+        <p>Handcrafted with love — browse, filter, and enjoy.</p>
+      </div>
+      <div class="hero-emoji" aria-hidden="true">🍰</div>
     </div>
 
     <!-- Filter Controls -->
     <form id="filter-form" class="filter-card">
       <div class="filter-group">
-        <input type="text" id="name" placeholder="Search by name..." />
+        <label for="name">Search by name</label>
+        <input type="text" id="name" placeholder="e.g. Chocolate Truffle…" />
       </div>
       <div class="filter-group">
-        <input type="text" id="category" placeholder="Category (e.g. Chocolate)" />
+        <label for="category">Category</label>
+        <input type="text" id="category" placeholder="e.g. Chocolate, Vanilla…" />
       </div>
-      <div class="filter-group price-inputs">
-        <input type="number" id="minPrice" placeholder="Min ₹" min="0" step="0.01" />
-        <input type="number" id="maxPrice" placeholder="Max ₹" min="0" step="0.01" />
+      <div class="filter-group">
+        <label>Price Range (₹)</label>
+        <div class="price-inputs">
+          <input type="number" id="minPrice" placeholder="Min" min="0" step="0.01" />
+          <input type="number" id="maxPrice" placeholder="Max" min="0" step="0.01" />
+        </div>
       </div>
       <div class="filter-buttons">
-        <button type="submit" class="btn btn-secondary">Apply Filters</button>
+        <button type="submit" class="btn btn-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Filter
+        </button>
         <button type="button" id="reset-filters-btn" class="btn btn-outline">Reset</button>
       </div>
     </form>
@@ -83,35 +98,41 @@
   </div>
 
   <!-- Rating Modal -->
-  <div id="rating-modal" class="modal-overlay" style="display: none;">
-    <div class="modal-content card">
+  <div id="rating-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
       <div class="modal-header">
         <h3 id="rating-modal-title">Rate Cake</h3>
         <button id="close-modal-btn" class="close-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
-      <form id="rating-form">
-        <input type="hidden" id="rating-cake-id">
-        <div class="form-group">
-          <label>Score (1 to 5 Stars):</label>
-          <select id="rating-score" required>
-            <option value="5">⭐⭐⭐⭐⭐ (5 - Excellent)</option>
-            <option value="4">⭐⭐⭐⭐ (4 - Very Good)</option>
-            <option value="3">⭐⭐⭐ (3 - Good)</option>
-            <option value="2">⭐⭐ (2 - Fair)</option>
-            <option value="1">⭐ (1 - Poor)</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Comment / Review:</label>
-          <textarea id="rating-comment" rows="3" placeholder="Share your experience..."></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary full-width">Submit Rating</button>
-      </form>
+      <div class="modal-body">
+        <form id="rating-form">
+          <input type="hidden" id="rating-cake-id">
+          <div class="form-group">
+            <label>Your Rating</label>
+            <div class="star-picker" id="star-picker">
+              <input type="radio" id="s5" name="star" value="5"><label for="s5" title="5 Stars">★</label>
+              <input type="radio" id="s4" name="star" value="4"><label for="s4" title="4 Stars">★</label>
+              <input type="radio" id="s3" name="star" value="3" checked><label for="s3" title="3 Stars">★</label>
+              <input type="radio" id="s2" name="star" value="2"><label for="s2" title="2 Stars">★</label>
+              <input type="radio" id="s1" name="star" value="1"><label for="s1" title="1 Star">★</label>
+            </div>
+            <input type="hidden" id="rating-score" value="3">
+          </div>
+          <div class="form-group">
+            <label for="rating-comment">Comment / Review</label>
+            <textarea id="rating-comment" rows="3" placeholder="Share your experience with this cake…"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary full-width btn-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Submit Rating
+          </button>
+        </form>
+      </div>
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>

@@ -1,6 +1,15 @@
 const mongoose = require('mongoose');
 const Rating = require('../models/Rating');
 
+exports.getAllRatings = async (req, res, next) => {
+    try {
+        const ratings = await Rating.find().sort({ createdAt: -1 });
+        res.json(ratings);
+    } catch (err) {
+        next(err);
+    }
+};
+
 exports.submitRating = async (req, res, next) => {
     try {
         const { cakeId, userId, score, comment } = req.body;

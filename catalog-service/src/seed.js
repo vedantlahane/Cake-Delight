@@ -68,14 +68,14 @@ async function seed() {
       category: 'Fruit', 
       price: 2239,
       description: 'Tropical mango mousse layered over a delicate coconut sponge cake.',
-      imageUrl: 'https://images.unsplash.com/photo-1514845555138-04ebfcbc77da?w=500&q=80'
+      imageUrl: 'https://picsum.photos/seed/mangotango/500/500'
     },
     { 
       name: 'Pistachio Rosewater', 
       category: 'Specialty', 
       price: 2800,
       description: 'Elegant pistachio sponge gently infused with rosewater and crushed nuts.',
-      imageUrl: 'https://images.unsplash.com/photo-1564759077036-3def242e69c5?w=500&q=80'
+      imageUrl: 'https://picsum.photos/seed/pistachio/500/500'
     },
     { 
       name: 'Tiramisu Crepe Cake', 
@@ -96,7 +96,7 @@ async function seed() {
       category: 'Chocolate', 
       price: 2559,
       description: 'Rich chocolate cake with a crunchy hazelnut praline center.',
-      imageUrl: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=500&q=80'
+      imageUrl: 'https://picsum.photos/seed/hazelnut/500/500'
     },
     { 
       name: 'Blueberry Lemon', 

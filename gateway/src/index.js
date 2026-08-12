@@ -6,6 +6,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 const authRoutes = require('./routes/authRoutes');
 const authMiddleware = require('./middleware/authMiddleware');
+const adminMiddleware = require('./middleware/adminMiddleware');
 
 const app = express();
 app.use(helmet());
@@ -14,64 +15,135 @@ app.use(morgan('combined'));
 app.use('/auth', express.json(), authRoutes);
 
 app.get('/', (req, res) => {
-    res.json({ status: 'ok' });
+    res.json({ status: 'ok', service: 'Cake Delight API Gateway' });
 });
 
-app.use('/api/cakes', createProxyMiddleware({
+// =============================================================
+// CATALOG SERVICE — /api/cakes
+// Public: GET (browse & filter)
+// Admin-only: POST, PUT, DELETE (catalog management)
+// NOTE: Express strips '/api/cakes', proxy receives '/' or '/:id'
+//       pathRewrite(path) restores the full path to the target service.
+// =============================================================
+app.use('/api/cakes', (req, res, next) => {
+    if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
+        return adminMiddleware(req, res, next);
+    }
+    next();
+}, createProxyMiddleware({
     target: process.env.CATALOG_SERVICE_URL || 'http://localhost:3000',
     changeOrigin: true,
-    pathRewrite: {
-        '^/': '/cakes/'
-    }
+    pathRewrite: (path) => `/cakes${path}`
 }));
 
-app.use('/api/basket',authMiddleware, createProxyMiddleware({
+// =============================================================
+// ORDER SERVICE — /api/basket  (auth required)
+// =============================================================
+app.use('/api/basket', authMiddleware, createProxyMiddleware({
     target: process.env.ORDER_SERVICE_URL || 'http://localhost:3001',
     changeOrigin: true,
-    pathRewrite: {
-        '^/': '/basket/'
-    },
-    on:{
-        proxyReq:(proxyReq,req,res)=>{
-            if(req.user && req.user.userId){
-                proxyReq.setHeader('X-User-Id',req.user.userId);
+    pathRewrite: (path) => `/basket${path}`,
+    on: {
+        proxyReq: (proxyReq, req) => {
+            if (req.user && req.user.userId) {
+                proxyReq.setHeader('X-User-Id', req.user.userId);
+                proxyReq.setHeader('X-User-Role', req.user.role || 'customer');
             }
         }
     }
 }));
 
-app.use('/api/orders', authMiddleware,createProxyMiddleware({
+// =============================================================
+// ORDER SERVICE — /api/orders
+// GET /api/orders           → admin only (all orders)
+// GET /api/orders/:userId   → auth required (own orders)
+// POST /api/orders/checkout → auth required
+// =============================================================
+app.get('/api/orders', adminMiddleware, createProxyMiddleware({
     target: process.env.ORDER_SERVICE_URL || 'http://localhost:3001',
     changeOrigin: true,
-    pathRewrite: {
-        '^/': '/orders/'
-    },
-    on:{
-        proxyReq:(proxyReq,req,res)=>{
-            if(req.user && req.user.userId){
-                proxyReq.setHeader('X-User-Id',req.user.userId);
+    pathRewrite: () => '/orders',
+    on: {
+        proxyReq: (proxyReq, req) => {
+            if (req.user && req.user.userId) {
+                proxyReq.setHeader('X-User-Id', req.user.userId);
+                proxyReq.setHeader('X-User-Role', req.user.role || 'customer');
             }
         }
-    }    
+    }
 }));
 
-app.use('/api/ratings', createProxyMiddleware({
+app.use('/api/orders', authMiddleware, createProxyMiddleware({
+    target: process.env.ORDER_SERVICE_URL || 'http://localhost:3001',
+    changeOrigin: true,
+    pathRewrite: (path) => `/orders${path}`,
+    on: {
+        proxyReq: (proxyReq, req) => {
+            if (req.user && req.user.userId) {
+                proxyReq.setHeader('X-User-Id', req.user.userId);
+                proxyReq.setHeader('X-User-Role', req.user.role || 'customer');
+            }
+        }
+    }
+}));
+
+// =============================================================
+// RATING SERVICE — /api/ratings
+// GET /api/ratings          → admin only (all ratings)
+// GET /api/ratings/:cakeId  → public
+// POST /api/ratings         → auth required (submit rating)
+// =============================================================
+app.get('/api/ratings', adminMiddleware, createProxyMiddleware({
     target: process.env.RATING_SERVICE_URL || 'http://localhost:3002',
     changeOrigin: true,
-    pathRewrite: {
-        '^/': '/ratings/'
+    pathRewrite: () => '/ratings'
+}));
+
+app.use('/api/ratings', (req, res, next) => {
+    if (req.method === 'POST') {
+        return authMiddleware(req, res, next);
+    }
+    next();
+}, createProxyMiddleware({
+    target: process.env.RATING_SERVICE_URL || 'http://localhost:3002',
+    changeOrigin: true,
+    pathRewrite: (path) => `/ratings${path}`
+}));
+
+// =============================================================
+// NOTIFICATION SERVICE — /api/notifications
+// GET /api/notifications            → admin only (all)
+// GET /api/notifications/:userId    → auth required (own)
+// =============================================================
+app.get('/api/notifications', adminMiddleware, createProxyMiddleware({
+    target: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3003',
+    changeOrigin: true,
+    pathRewrite: () => '/notifications',
+    on: {
+        proxyReq: (proxyReq, req) => {
+            if (req.user) {
+                proxyReq.setHeader('X-User-Id', req.user.userId);
+                proxyReq.setHeader('X-User-Role', req.user.role || 'customer');
+            }
+        }
     }
 }));
 
-app.use('/api/notifications', createProxyMiddleware({
+app.use('/api/notifications', authMiddleware, createProxyMiddleware({
     target: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3003',
     changeOrigin: true,
-    pathRewrite: {
-        '^/': '/notifications/'
+    pathRewrite: (path) => `/notifications${path}`,
+    on: {
+        proxyReq: (proxyReq, req) => {
+            if (req.user) {
+                proxyReq.setHeader('X-User-Id', req.user.userId);
+                proxyReq.setHeader('X-User-Role', req.user.role || 'customer');
+            }
+        }
     }
 }));
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
-    console.log(`API Gateway is running on port ${PORT}`);
+    console.log(`API Gateway running on port ${PORT}`);
 });
