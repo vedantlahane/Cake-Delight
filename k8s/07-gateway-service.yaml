@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: cake-delight
+  labels:
+    app: gateway
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+        - name: gateway
+          image: gateway:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PORT
+              value: "8080"
+            - name: CATALOG_SERVICE_URL
+              value: "http://catalog-service.cake-delight.svc.cluster.local:3000"
+            - name: ORDER_SERVICE_URL
+              value: "http://order-service.cake-delight.svc.cluster.local:3001"
+            - name: RATING_SERVICE_URL
+              value: "http://rating-service.cake-delight.svc.cluster.local:3002"
+            - name: NOTIFICATION_SERVICE_URL
+              value: "http://notification-service.cake-delight.svc.cluster.local:3003"
+            - name: JWT_SECRET
+              value: "cakedelight-secret-key-2026"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  namespace: cake-delight
+spec:
+  selector:
+    app: gateway
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30080
+  type: NodePort

@@ -1,34 +1,128 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Cake Delight</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cake Delight — Cloud-Native Artisanal Bakery</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Cake Delight</h1>
+  <!-- Header / Navigation -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="brand">
+        <span class="logo-icon">🎂</span>
+        <span class="brand-name">Cake Delight</span>
+      </div>
+      <div class="auth-bar" id="auth-section">
+        <input type="text" id="login-userId" placeholder="Enter User ID (e.g. alex)" />
+        <button id="login-btn" class="btn btn-primary">Login</button>
+        <div id="logged-in-as" class="user-badge" style="display: none;"></div>
+        <button id="logout-btn" class="btn btn-outline" style="display: none;">Logout</button>
+      </div>
+    </div>
+  </header>
 
-  <div id="auth-section">
-    <input type="text" id="login-userId" placeholder="Enter a userId">
-    <button id="login-btn">Login</button>
-    <span id="logged-in-as"></span>
+  <div class="container">
+    <!-- Hero Banner -->
+    <section class="hero-banner">
+      <h1>Handcrafted Cakes, Delivered with Care 🍰</h1>
+      <p>Discover our delicious catalog of freshly baked artisanal cakes and sweet treats.</p>
+    </section>
+
+    <!-- Main Grid Layout -->
+    <div class="main-layout">
+      <!-- Left Column: Catalog & Ratings -->
+      <main class="catalog-section">
+        <div class="section-header">
+          <h2>Cake Catalog</h2>
+        </div>
+
+        <!-- Filter Controls -->
+        <form id="filter-form" class="filter-card">
+          <div class="filter-group">
+            <input type="text" id="name" placeholder="Search by name..." />
+          </div>
+          <div class="filter-group">
+            <input type="text" id="category" placeholder="Category (e.g. Chocolate)" />
+          </div>
+          <div class="filter-group price-inputs">
+            <input type="number" id="minPrice" placeholder="Min $" min="0" step="0.01" />
+            <input type="number" id="maxPrice" placeholder="Max $" min="0" step="0.01" />
+          </div>
+          <div class="filter-buttons">
+            <button type="submit" class="btn btn-secondary">Apply Filters</button>
+            <button type="button" id="reset-filters-btn" class="btn btn-outline">Reset</button>
+          </div>
+        </form>
+
+        <!-- Cake Cards Grid -->
+        <div id="cake-list" class="cake-grid"></div>
+      </main>
+
+      <!-- Right Column: Basket & Notifications -->
+      <aside class="sidebar">
+        <!-- Basket Section -->
+        <div class="card basket-card">
+          <div class="card-header">
+            <h3>🛒 Shopping Basket</h3>
+          </div>
+          <div id="basket-items" class="basket-items-list">
+            <p class="empty-msg">Please log in to view your basket.</p>
+          </div>
+          <div class="basket-summary">
+            <div id="basket-total" class="basket-total">Total: $0.00</div>
+            <button id="checkout-btn" class="btn btn-accent full-width" disabled>Proceed to Checkout</button>
+          </div>
+          <div id="order-confirmation" class="status-box"></div>
+        </div>
+
+        <!-- Notifications Section -->
+        <div class="card notifications-card">
+          <div class="card-header">
+            <h3>🔔 Order Notifications</h3>
+            <button id="refresh-notifications-btn" class="btn btn-sm btn-outline">Refresh</button>
+          </div>
+          <div id="notifications-list" class="notifications-list">
+            <p class="empty-msg">No notifications yet.</p>
+          </div>
+        </div>
+      </aside>
+    </div>
   </div>
 
-  <h2>Cakes</h2>
-  <form id="filter-form">
-    <input type="text" id="name" placeholder="Search by name">
-    <input type="text" id="category" placeholder="Category">
-    <input type="number" id="minPrice" placeholder="Min price">
-    <input type="number" id="maxPrice" placeholder="Max price">
-    <button type="submit">Filter</button>
-  </form>
-  <div id="cake-list"></div>
-
-  <h2>Basket</h2>
-  <div id="basket-items"></div>
-  <p id="basket-total"></p>
-  <button id="checkout-btn">Checkout</button>
-  <div id="order-confirmation"></div>
+  <!-- Rating Modal -->
+  <div id="rating-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content card">
+      <div class="modal-header">
+        <h3 id="rating-modal-title">Rate Cake</h3>
+        <button id="close-modal-btn" class="close-btn">&times;</button>
+      </div>
+      <form id="rating-form">
+        <input type="hidden" id="rating-cake-id">
+        <div class="form-group">
+          <label>Score (1 to 5 Stars):</label>
+          <div class="star-rating-select">
+            <select id="rating-score" required>
+              <option value="5">⭐⭐⭐⭐⭐ (5 - Excellent)</option>
+              <option value="4">⭐⭐⭐⭐ (4 - Very Good)</option>
+              <option value="3">⭐⭐⭐ (3 - Good)</option>
+              <option value="2">⭐⭐ (2 - Fair)</option>
+              <option value="1">⭐ (1 - Poor)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Comment / Review:</label>
+          <textarea id="rating-comment" rows="3" placeholder="Share your experience..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary full-width">Submit Rating</button>
+      </form>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>

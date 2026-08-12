@@ -1,5 +1,5 @@
 const express = require('express');
-const router = require('router');
+const router = express.Router();
 const jwt = require('jsonwebtoken');
 
 router.post('/login',(req,res)=>{

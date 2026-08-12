@@ -1,0 +1,135 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: cakedelight-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=cakedelight
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - cakedelight-net
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: cakedelight-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - cakedelight-net
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  catalog-service:
+    build:
+      context: ../catalog-service
+      dockerfile: Dockerfile
+    container_name: cakedelight-catalog
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - MONGODB_URI=mongodb://mongodb:27017/cakedelight-catalog
+    depends_on:
+      - mongodb
+    networks:
+      - cakedelight-net
+
+  order-service:
+    build:
+      context: ../order-service
+      dockerfile: Dockerfile
+    container_name: cakedelight-order
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - MONGODB_URI=mongodb://mongodb:27017/cakedelight-order
+      - CATALOG_SERVICE_URL=http://catalog-service:3000
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+    depends_on:
+      - mongodb
+      - rabbitmq
+      - catalog-service
+    networks:
+      - cakedelight-net
+
+  rating-service:
+    build:
+      context: ../rating-service
+      dockerfile: Dockerfile
+    container_name: cakedelight-rating
+    ports:
+      - "3002:3002"
+    environment:
+      - PORT=3002
+      - MONGODB_URI=mongodb://mongodb:27017/cakedelight-rating
+    depends_on:
+      - mongodb
+    networks:
+      - cakedelight-net
+
+  notification-service:
+    build:
+      context: ../notification-service
+      dockerfile: Dockerfile
+    container_name: cakedelight-notification
+    ports:
+      - "3003:3003"
+    environment:
+      - PORT=3003
+      - MONGODB_URI=mongodb://mongodb:27017/cakedelight-notification
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+    depends_on:
+      - mongodb
+      - rabbitmq
+    networks:
+      - cakedelight-net
+
+  gateway:
+    build:
+      context: ../gateway
+      dockerfile: Dockerfile
+    container_name: cakedelight-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - CATALOG_SERVICE_URL=http://catalog-service:3000
+      - ORDER_SERVICE_URL=http://order-service:3001
+      - RATING_SERVICE_URL=http://rating-service:3002
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3003
+      - JWT_SECRET=cakedelight-secret-key-2026
+    depends_on:
+      - catalog-service
+      - order-service
+      - rating-service
+      - notification-service
+    networks:
+      - cakedelight-net
+
+  client:
+    build:
+      context: ../client
+      dockerfile: Dockerfile
+    container_name: cakedelight-client
+    ports:
+      - "80:80"
+    depends_on:
+      - gateway
+    networks:
+      - cakedelight-net
+
+networks:
+  cakedelight-net:
+    driver: bridge
+
+volumes:
+  mongo-data:
