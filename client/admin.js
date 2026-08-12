@@ -34,7 +34,7 @@ function renderOrders(orders) {
     <tr>
       <td>${o._id.substring(0, 8)}...</td>
       <td><strong>${o.userId}</strong></td>
-      <td>$${o.total.toFixed(2)}</td>
+      <td>₹${o.total.toFixed(2)}</td>
       <td><span class="status-badge status-${o.status}">${o.status}</span></td>
       <td>${new Date(o.createdAt).toLocaleString()}</td>
     </tr>

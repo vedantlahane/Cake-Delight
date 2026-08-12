@@ -3,7 +3,7 @@
 This directory contains the Kubernetes manifests for orchestrating the **Cake Delight** Cloud-Native Microservices application on Kubernetes (Minikube, MicroK8s, k3s, EKS, GKE, or AKS).
 
 ## Prerequisites
-- A running Kubernetes Cluster (e.g., `minikube start`)
+- A running Kubernetes Cluster (e.g., `minikube start --driver=docker`)
 - `kubectl` CLI installed and configured
 
 ---
@@ -13,9 +13,11 @@ This directory contains the Kubernetes manifests for orchestrating the **Cake De
 ### 1. Apply All Manifests in Sequence
 Run the following command to deploy all resources in the `cake-delight` namespace:
 
+From Root Folder
 ```bash
 kubectl apply -f k8s/
 ```
+
 
 Alternatively, apply sequentially:
 ```bash
