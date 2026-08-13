@@ -1,54 +1,57 @@
 # Cake Delight
 
-This is my capstone project — a cloud-native microservices app for a made-up cake shop called Cake Delight. You can browse cakes, add them to a basket, check out, get notified by email, and rate what you bought. It's built as five separate Node.js services sitting behind an API gateway, backed by MongoDB and RabbitMQ, and it can run either in Docker or on Kubernetes.
+A cloud-native microservices app for a made-up cake shop — my capstone project. You can browse cakes, log in, manage a basket, check out, get notified, and rate what you bought. Under the hood it's five separate Node.js services behind an API gateway, backed by MongoDB and RabbitMQ, and it runs either in Docker Compose or on Kubernetes.
 
-The point of building it this way wasn't to make a cake shop — it's to actually practice the stuff that's hard to get right just from reading about it: splitting a system into services that own their own data, keeping them loosely coupled, using events instead of direct calls where it matters, and deploying the whole thing instead of just running `npm start` forever on my laptop.
+The point of building it this way wasn't really the cake shop — it was to actually practice the parts that are hard to get right just from reading about them: splitting a system into services that own their own data, keeping them loosely coupled, using events instead of direct calls where it matters, and deploying the thing for real instead of just running `npm start` forever on my laptop.
 
 ## What it does
 
-- Browse the cake catalog, search by name, filter by category and price range
-- Log in using an OTP (one-time password) flow — enter your email, get a code, type it in
-- Add cakes to a basket, change quantities using the +/− buttons, remove items
-- Checkout — creates a real order, empties the basket, and fires off a notification in the background
-- See your order confirmation in the bell icon in the top navbar without refreshing
-- Rate a cake you liked and see the average score update
+- Browse the catalog, search by name, filter by category and price range
+- Log in with an OTP (one-time password) flow — enter an email, get a code, enter the code
+- Add cakes to a basket, change quantities, remove items
+- Check out — creates a real order, empties the basket, fires off a notification in the background
+- See the order confirmation show up on its own (no refresh needed) — it arrived asynchronously via RabbitMQ
+- Rate a cake you bought and watch the average score update
 
-There are two login roles: **Admin** and **Customer**. They don't see each other's stuff. Admins can see all orders and all notifications, manage the cake catalog, and view all ratings. Customers only see their own basket, their own orders, and their own notifications.
+There are two roles: **Admin** and **Customer**. Customers only see their own basket, orders, and notifications. Admins can see everything across all customers, plus manage the catalog.
 
-## How it's put together
+## Architecture
 
-There's one API gateway in front of everything, and it's the only thing the frontend ever talks to directly. Behind it are four services, each owning its own slice of the data:
+One API gateway sits in front of everything and is the only thing the frontend talks to directly. Behind it, four services each own their own slice of the data:
 
-- **catalog-service** — owns the cake data. Customers can browse it freely. Only admins can add, edit, or delete cakes.
-- **order-service** — owns baskets and orders. This is the one service that calls another service directly: when you add a cake to your basket, it asks catalog-service for the real price instead of trusting whatever the browser sends. That's on purpose — otherwise someone could just edit the request and buy a cake for a penny.
-- **rating-service** — owns ratings, and calculates the average score using a MongoDB aggregation pipeline instead of pulling every rating into JavaScript and averaging it there.
-- **notification-service** — doesn't get called directly by anything. It just sits and listens on RabbitMQ for an `order.completed` event, and sends a confirmation email whenever one shows up.
+| Service | Owns | Notes |
+|---|---|---|
+| **catalog-service** | Cake data | Public reads, admin-only writes |
+| **order-service** | Baskets + orders | The one service that calls another service directly — it asks catalog-service for the real price of a cake before adding it to a basket, instead of trusting whatever the browser sends |
+| **rating-service** | Ratings | Averages are calculated with a MongoDB aggregation pipeline, not in application code |
+| **notification-service** | Notification records | Never called directly — it just listens on RabbitMQ for an `order.completed` event and reacts when one shows up |
 
-Order and Notification talk through RabbitMQ instead of Order calling Notification's API directly. That's the deliberately async part — checkout shouldn't have to wait for an email to send before it tells you your order went through.
+Order and Notification are connected through RabbitMQ instead of a direct API call. That's the deliberately asynchronous part of the system: checkout shouldn't have to sit around waiting for an email to send before it tells the customer they're done.
+
+*(Architecture diagram and checkout sequence diagram: see `docs/` if included in this repo.)*
 
 ## Tech stack
 
-- Node.js + Express for all five services (4 microservices + 1 gateway)
-- MongoDB with Mongoose — one MongoDB instance, but each service uses its own database inside it, so they're still logically separate
-- RabbitMQ for the `order.completed` event between order-service and notification-service
-- JWT tokens for authentication — the gateway validates them before letting requests through to protected routes
-- Plain HTML/CSS/JS for the frontend, no framework — kept it simple on purpose so I could spend more time on the backend and infrastructure side
-- Nginx serves the frontend as a static site inside a container
-- Docker for containers, Docker Compose for running locally, Kubernetes for running it like it'd actually be deployed
-- Mailpit standing in for a real email provider — notifications actually land somewhere you can look at them without needing real SMTP credentials
+- **Node.js + Express** — all five services
+- **MongoDB + Mongoose** — one MongoDB instance locally, each service uses its own database inside it, so they're still logically separate
+- **RabbitMQ** — carries the `order.completed` event
+- **JWT** — the gateway issues and verifies tokens; backend services trust the gateway rather than re-verifying tokens themselves
+- **Plain HTML/CSS/JS** — frontend, no framework, served by nginx
+- **Mailpit** — stands in for a real email provider, so notifications land somewhere visible without needing real SMTP credentials
+- **Docker + Kubernetes** — containerization and orchestration
 
 ## Running it
 
-There are two ways to run this. Pick one.
+Two ways to run this. **Don't run both at once** — they use separate databases, so you'll end up seeding one and looking at the other, which is exactly as confusing as it sounds.
 
-**Docker Compose** — easiest, good for local testing. Full steps are in [`docker/README.md`](docker/README.md), short version:
+**Docker Compose** (easiest, best for local dev/testing) — full steps in [`docker/README.md`](docker/README.md):
 ```bash
 cd docker
 docker compose up --build -d
 ```
 Then open http://localhost.
 
-**Kubernetes** — closer to how this would actually run in production. Tested locally with minikube. Full steps are in [`k8s/README.md`](k8s/README.md), short version:
+**Kubernetes** (closer to a real deployment, tested with minikube) — full steps in [`k8s/README.md`](k8s/README.md):
 ```bash
 minikube start --driver=docker
 # build images inside minikube's Docker environment first — see k8s/README.md
@@ -58,50 +61,64 @@ minikube service client -n cake-delight
 
 ## Logging in
 
-Go to http://localhost/auth.html (or click Sign In from the catalog page).
+Go to `/auth.html` (or click Sign In from the catalog page).
 
-**Quick Demo Login** is the easiest way — there are two buttons right on the login page:
-- **Admin Demo Login** — logs in as `admin@cakedelight.com`
-- **Customer Demo Login** — logs in as `customer@cakedelight.com`
+**Quick Demo Login** — two buttons right on the login page, Admin and Customer, that request an OTP, fetch it from the gateway's demo endpoint, and log you in with no typing required.
 
-These automatically request an OTP, fetch it from the gateway's demo endpoint, and log you in without you having to type anything.
-
-If you want to use the full OTP flow manually:
-1. Type an email address (e.g. `customer@cakedelight.com`) and click **Send OTP**
-2. The gateway generates a code — you'll see it appear in the login UI as a hint (since this is a demo, it shows the code instead of sending it somewhere you can't see)
-3. Type the 6-digit code and click **Sign In**
-
-After logging in you'll be redirected to the catalog. Admins go straight to the admin dashboard.
+**Manual OTP flow**, if you want to see the real steps:
+1. Type an email (e.g. `customer@cakedelight.com`), click **Send OTP**
+2. The code appears on screen as a hint — since this is a demo with no real email provider wired to auth, showing it directly is the intended behavior, not a bug
+3. Enter the code, click **Sign In**
 
 ## Trying the whole flow
 
-1. Log in as Customer using the Quick Demo Login button
-2. Browse the catalog, try the search bar and price filters
-3. Add a couple of cakes to the basket, use the +/− buttons to change quantities, remove one
-4. Click **Secure Checkout**
-5. Click the bell icon in the top navbar — your order confirmation should be there. It arrived via RabbitMQ in the background while the checkout was processing, not because the frontend went looking for it.
-6. Go back to the catalog, rate a cake, and see the star rating update
+1. Log in as Customer (Quick Demo Login)
+2. Browse the catalog, try the search and price filters
+3. Add a couple of cakes to the basket, change a quantity, remove one
+4. Checkout
+5. Check the notification bell — the confirmation should already be there
+6. Rate a cake, watch the average update
+7. Sign out, log in as Admin, and see the same system from that side — all orders, all notifications, catalog management
 
-To see the admin view: sign out, then log in as Admin. You'll get to see all orders across all customers, all notifications, and the full catalog management panel.
+## API quick reference
+
+| Service | Endpoint | Auth |
+|---|---|---|
+| catalog | `GET /cakes` — list/filter (`?name=&category=&minPrice=&maxPrice=`) | Public |
+| catalog | `GET /cakes/:id` | Public |
+| order | `GET/POST/PUT/DELETE /basket/:userId[/items/:cakeId]` | Required |
+| order | `POST /orders/checkout` | Required |
+| order | `GET /orders/:orderId` | Required |
+| rating | `POST /ratings` | Required |
+| rating | `GET /ratings/:cakeId`, `GET /ratings/:cakeId/average` | Public |
+| notification | `GET /notifications/:orderId` | Required |
+| gateway | `POST /auth/login` (or OTP endpoints, if that's what's live) | — |
+
+All of the above are reached through the gateway at `/api/...` (e.g. `/api/cakes`), except auth, which is at `/auth/...`.
 
 ## Things I simplified on purpose
 
-Worth being upfront about rather than hoping nobody asks:
+Worth being upfront about these instead of hoping nobody asks:
 
-- Ratings don't check whether you actually bought the cake — anyone who's logged in can rate anything
-- All four services' data lives in one MongoDB instance. They still use separate databases inside it, so the data is logically separated, but in a real deployment each service would have its own database server
-- Notifications go through Mailpit, not a real email provider. If you open http://localhost:8025 after a checkout you'll see the confirmation land there. Swapping in real SMTP later would be a one-env-variable change, not a code rewrite.
-- Login doesn't check a real password — it just checks that you know the OTP that was generated for that userId
+- Ratings don't check whether you actually bought the cake — anyone logged in can rate anything
+- All four services' data lives in one MongoDB instance. Still logically separate databases, just sharing one server instead of four for simplicity
+- Notifications go through Mailpit, not a real email provider — swapping in real SMTP later is a config change, not a rewrite
+- Login checks that you know a valid OTP for that email, not a real password/account system
+
+## Known gotchas
+
+- **Kubernetes MongoDB has no PersistentVolumeClaim.** Every fresh `kubectl apply` after deleting the namespace means an empty database — you'll need to reseed. See `k8s/README.md` for the seed command.
+- **Don't run Compose and Kubernetes at the same time.** They're two entirely separate stacks with separate databases; mixing them up is the single most common source of "why isn't this working" while testing.
 
 ## Repo layout
 
 ```
-catalog-service/      Cake catalog API — CRUD for cakes, public reads, admin-only writes
-order-service/        Basket + order API — adds items, handles checkout, publishes order.completed
-rating-service/       Ratings API — submit ratings, read per-cake averages
-notification-service/ Consumes order.completed from RabbitMQ, sends confirmation via Mailpit
-gateway/              Single entry point — routes requests, handles auth/JWT, enforces RBAC
-client/               Frontend — HTML/CSS/JS served by nginx
-docker/               Docker Compose setup, see docker/README.md
-k8s/                  Kubernetes manifests, see k8s/README.md
+catalog-service/       Cake catalog API — CRUD for cakes, public reads, admin-only writes
+order-service/         Basket + order API — adds items, handles checkout, publishes order.completed
+rating-service/        Ratings API — submit ratings, read per-cake averages
+notification-service/  Consumes order.completed from RabbitMQ, sends confirmation via Mailpit
+gateway/                Single entry point — routing, auth/JWT, RBAC
+client/                 Frontend — HTML/CSS/JS served by nginx
+docker/                 Docker Compose setup — see docker/README.md
+k8s/                    Kubernetes manifests — see k8s/README.md
 ```

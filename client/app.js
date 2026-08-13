@@ -2,9 +2,9 @@
    app.js — Cake Delight Customer App
    ============================================================ */
 
-const hostname = window.location.hostname || 'localhost';
-const GATEWAY_BASE = `http://${hostname}:8080`;
-const API_BASE = `${GATEWAY_BASE}/api`;
+const hostname    = window.location.hostname || 'localhost';
+const GATEWAY_BASE = `http://${hostname}:30080`;
+const API_BASE      = `${GATEWAY_BASE}/api`;
 
 // ============================================================
 // SESSION HELPERS
@@ -290,7 +290,7 @@ async function renderCakes(cakes) {
   if (!cakes || cakes.length === 0) {
     container.innerHTML = `
       <div class="empty-state" style="grid-column:1/-1;">
-        <div class="empty-state-icon">🔍</div>
+        <div class="empty-state-icon"></div>
         <h3>No cakes found</h3>
         <p>Try adjusting your filters or browse all cakes.</p>
       </div>`;
@@ -378,7 +378,7 @@ window.addToBasket = async function(cakeId, cakeName) {
       showToast('Failed to add cake to basket', 'error');
       return;
     }
-    showToast(`${cakeName || 'Cake'} added to basket! 🎂`, 'success');
+    showToast(`${cakeName || 'Cake'} added to basket! `, 'success');
   } catch (err) {
     console.error('Add to basket error:', err);
     showToast('Error connecting to server', 'error');
@@ -471,7 +471,7 @@ async function loadBasket() {
   if (!userId || !getToken()) {
     container.innerHTML = `
       <div class="empty-state">
-        <div class="empty-state-icon">🔐</div>
+        <div class="empty-state-icon"></div>
         <h3>Sign in required</h3>
         <p>Please sign in to view your basket.</p>
         <a href="auth.html" class="btn btn-primary" style="margin-top:8px;">Sign In</a>
@@ -497,7 +497,7 @@ function renderBasket(basket) {
   if (!basket || !basket.items || basket.items.length === 0) {
     container.innerHTML = `
       <div class="empty-state">
-        <div class="empty-state-icon">🛒</div>
+        <div class="empty-state-icon"></div>
         <h3>Your basket is empty</h3>
         <p>Browse our catalog and add some cakes!</p>
         <a href="index.html" class="btn btn-primary" style="margin-top:8px;">Browse Cakes</a>
@@ -606,7 +606,7 @@ if (checkoutBtn) {
       confirmationEl.className = 'status-box success';
       confirmationEl.innerHTML = `
         <div>
-          <div><strong>🎉 Order placed successfully!</strong></div>
+          <div><strong> Order placed successfully!</strong></div>
           <div style="margin-top:6px; font-size:0.85rem;">Order ID: <code>${data._id}</code> &nbsp;|&nbsp; Total: ₹${data.total.toFixed(2)}</div>
         </div>`;
 
@@ -674,7 +674,7 @@ async function loadNotifications() {
     container.innerHTML = notifications.map(n => `
       <div class="notification-item">
         <div class="notification-title" style="font-weight:600;font-size:0.9rem;">
-          ${n.channel === 'email' ? '📬' : '🔔'} Order Confirmation
+          ${n.channel === 'email' ? '' : ''} Order Confirmation
         </div>
         <div class="notification-sub" style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">
           Order ID: <code>${n.orderId}</code><br>Channel: ${n.channel}

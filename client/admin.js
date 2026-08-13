@@ -3,8 +3,8 @@
    ============================================================ */
 
 const hostname    = window.location.hostname || 'localhost';
-const GATEWAY_BASE = `http://${hostname}:8080`;
-const API_BASE    = `${GATEWAY_BASE}/api`;
+const GATEWAY_BASE = `http://${hostname}:30080`;
+const API_BASE      = `${GATEWAY_BASE}/api`;
 
 // ============================================================
 // SESSION HELPERS
