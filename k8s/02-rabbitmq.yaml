@@ -40,10 +40,10 @@ spec:
   selector:
     app: rabbitmq
   ports:
-    - port: 5672
-      targetPort: 5672
-      name: amqp
-    - port: 15672
-      targetPort: 15672
-      name: management
-  type: ClusterIP
+    - port: 5672 # this is the port that the service will expose within the cluster
+      targetPort: 5672 # this is the port that the container is listening on
+      name: amqp # amqp is the name of the port that will be used to access the RabbitMQ message broker
+    - port: 15672 # this is the port that the service will expose within the cluster
+      targetPort: 15672 # this is the port that the container is listening on
+      name: management # management is the name of the port that will be used to access the RabbitMQ management interface
+  type: ClusterIP #this is the type of service that will be created, ClusterIP means that the service will only be accessible within the cluster

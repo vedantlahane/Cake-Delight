@@ -14,8 +14,15 @@ app.get('/health', (req, res) => {
     res.json({ status: 'ok' });
 });
 
+/**
+ * Routes for handling notification-related requests.
+ */
 app.use('/notifications', notificationRoutes);
 
+/**
+ * Error handling middleware for the notification service.
+ * Logs the error and sends a 500 Internal Server Error response.
+ */
 app.use((err, req, res, next) => {
     console.error('Notification service error:', err.message);
     res.status(500).json({ error: err.message || 'Internal Server Error' });

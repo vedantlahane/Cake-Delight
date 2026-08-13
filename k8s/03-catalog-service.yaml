@@ -39,12 +39,13 @@ spec:
               port: 3000
             initialDelaySeconds: 5
             periodSeconds: 10
-          livenessProbe:
-            httpGet:
+            # Readiness probe configuration
+          livenessProbe: 
+            httpGet: # Checks the /health endpoint to determine if the container is alive, /health endpoint is already implemented in the catalog-service code.
               path: /health
               port: 3000
-            initialDelaySeconds: 15
-            periodSeconds: 20
+            initialDelaySeconds: 15 # Initial delay before checking liveness
+            periodSeconds: 20 # Frequency of liveness checks
 ---
 apiVersion: v1
 kind: Service

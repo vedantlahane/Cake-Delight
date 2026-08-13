@@ -1,6 +1,14 @@
 const mongoose = require('mongoose');
 const Rating = require('../models/Rating');
 
+
+/**
+ * Retrieves all ratings.
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @param {Function} next - The next middleware function for error handling.
+ * @returns {void}
+ */
 exports.getAllRatings = async (req, res, next) => {
     try {
         const ratings = await Rating.find().sort({ createdAt: -1 });
@@ -10,6 +18,13 @@ exports.getAllRatings = async (req, res, next) => {
     }
 };
 
+/**
+ * Submits a new rating for a cake.
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @param {Function} next - The next middleware function for error handling.
+ * @returns {void}
+ */
 exports.submitRating = async (req, res, next) => {
     try {
         const { cakeId, userId, score, comment } = req.body;
@@ -25,6 +40,14 @@ exports.submitRating = async (req, res, next) => {
     }
 };
 
+
+/**
+ * Retrieves all ratings for a specific cake.
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @param {Function} next - The next middleware function for error handling.
+ * @returns {void}
+ */
 exports.getRatingsForCake = async (req, res, next) => {
     try {
         const { cakeId } = req.params;
@@ -37,6 +60,14 @@ exports.getRatingsForCake = async (req, res, next) => {
     }
 };
 
+
+/**
+ * Retrieves the average rating for a specific cake.
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @param {Function} next - The next middleware function for error handling.
+ * @returns {void}
+ */
 exports.getAverageRating = async (req, res, next) => {
     try {
         const { cakeId } = req.params;
@@ -52,4 +83,4 @@ exports.getAverageRating = async (req, res, next) => {
     catch (err) {
         next(err);
     }
-};
+};

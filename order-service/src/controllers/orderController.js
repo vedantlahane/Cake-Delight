@@ -2,6 +2,13 @@ const Order = require('../models/Order');
 const Basket = require('../models/Basket');
 const { publishOrderCompleted } = require('../services/eventPublisher');
 
+/**
+ * Retrieves all orders.
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @param {Function} next - The next middleware function for error handling.
+ * @returns {void}
+ */
 exports.getAllOrders = async (req, res, next) => {
     try {
         const orders = await Order.find().sort({ createdAt: -1 });
@@ -11,6 +18,13 @@ exports.getAllOrders = async (req, res, next) => {
     }
 };
 
+/**
+ * Retrieves orders for a specific user.
+ * @param {Object} req - The request object containing the userId parameter.
+ * @param {Object} res - The response object used to send the orders data.
+ * @param {Function} next - The next middleware function for error handling.
+ * @returns {void}
+ */
 exports.getOrder = async (req, res, next) => {
     try {
         const { userId } = req.params;
@@ -23,6 +37,14 @@ exports.getOrder = async (req, res, next) => {
     }
 };
 
+
+/**
+ * Processes the checkout for a user's basket.
+ * @param {Object} req - The request object containing the userId in the body or headers.
+ * @param {Object} res - The response object used to send the order data.
+ * @param {Function} next - The next middleware function for error handling.
+ * @returns {void}
+ */
 exports.checkout = async (req, res, next) => {
     try {
         const userId = req.body.userId || req.headers['x-user-id'] || req.params.userId;

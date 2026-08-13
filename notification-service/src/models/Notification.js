@@ -1,4 +1,13 @@
 const mongoose = require('mongoose');
+
+/**
+ * Defines the schema for the Notification model in MongoDB using Mongoose.
+ * Each notification document contains the following fields:
+ * - orderId: ObjectId reference to the associated order (required).
+ * - userId: String representing the user ID (required).
+ * - channel: String indicating the communication channel (email, sms, or in-app).
+ * - status: String indicating the status of the notification (pending, sent, or failed).
+ */
 const notificationSchema = new mongoose.Schema({
     orderId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -20,4 +29,4 @@ const notificationSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Notification', notificationSchema);
+module.exports = mongoose.model('Notification', notificationSchema);

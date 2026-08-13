@@ -2,8 +2,12 @@
    app.js — Cake Delight Customer App
    ============================================================ */
 
-const hostname    = window.location.hostname || 'localhost';
-const GATEWAY_BASE = `http://${hostname}:30080`;
+/**
+ * This script manages the client-side functionality of the Cake Delight application.
+ * It handles user authentication, session management, toast notifications, and interactions with the backend API for catalog browsing, basket management, and rating submissions.
+ */
+const hostname    = window.location.hostname || 'localhost'; // here for dev mode, in prod it will be the actual hostname, which we will get from window.location.hostname
+const GATEWAY_BASE = `http://${hostname}:30080`; // 30080 is the port number of the NodePort when the app is exposed via Kubernetes
 const API_BASE      = `${GATEWAY_BASE}/api`;
 
 // ============================================================

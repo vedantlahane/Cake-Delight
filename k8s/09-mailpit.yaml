@@ -19,9 +19,9 @@ spec:
         - name: mailpit
           image: axllent/mailpit:latest
           ports:
-            - containerPort: 1025
+            - containerPort: 1025 #this is the port that the container is listening on for SMTP traffic
               name: smtp
-            - containerPort: 8025
+            - containerPort: 8025 #this is the port that the container is listening on for the web UI
               name: webui
 ---
 apiVersion: v1
@@ -34,10 +34,10 @@ spec:
   selector:
     app: mailpit
   ports:
-    - name: smtp
-      port: 1025
-      targetPort: 1025
-    - name: webui
-      port: 8025
-      targetPort: 8025
-      nodePort: 30025
+    - name: smtp # SMTP port for sending emails
+      port: 1025 # this is the port that the service will expose within the cluster
+      targetPort: 1025 # this is the port that the container is listening on
+    - name: webui 
+      port: 8025 # this is the port that the service will expose within the cluster
+      targetPort: 8025 # this is the port that the container is listening on
+      nodePort: 30025 # this is the port that will be exposed on each node in the cluster, allowing external access to the web UI

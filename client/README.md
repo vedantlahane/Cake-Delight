@@ -1,73 +1,109 @@
 # Client Frontend
 
-This is the frontend for Cake Delight. It's plain HTML, CSS, and vanilla JavaScript — no React, no Vue, nothing like that. I kept it simple so I could focus on the backend and infrastructure parts of the project rather than fighting a frontend framework.
+This is the frontend for **Cake Delight**. Built with plain HTML5, CSS3, and modern vanilla JavaScript (ES6+) — without external frameworks like React or Vue — ensuring lightweight, fast rendering and low complexity.
 
-It gets served by nginx inside a Docker/Kubernetes container and talks to the backend entirely through the API gateway at `http://localhost:8080`.
+It is served via Nginx inside a Docker or Kubernetes container and communicates with backend microservices via the API Gateway.
 
-## Pages
+---
 
-**`index.html` — Cake Catalog**
-The main landing page. Loads all available cakes from the catalog service, shows their images, prices, and average ratings. You can search by name, filter by category, and filter by price range. Logged-in customers can add cakes to their basket or leave a rating. Logged-out visitors can browse but not do much else.
+## 📄 Pages Overview
 
-**`basket.html` — Shopping Basket**
-Shows the items in your basket. Each item shows the cake image, name, price per unit, and a +/− toggle for adjusting the quantity. You can also remove individual items. The order summary on the right updates as you change things. The Secure Checkout button creates the order and clears the basket.
+### `index.html` — Cake Catalog
+The main customer landing page:
+- Displays available cakes from `catalog-service` with images, prices, and average ratings from `rating-service`.
+- Features real-time search by cake name, category filter, and price range filter.
+- Logged-in customers can add cakes to their shopping basket or submit ratings/reviews.
+- Unauthenticated visitors can browse products.
 
-**`auth.html` — Login**
-Handles the OTP login flow. You type an email, click Send OTP, then type the code that appears. There's also a Quick Demo Login section with two one-click buttons — Admin and Customer — that automate the whole OTP process so you don't have to copy-paste anything when demoing.
+### `basket.html` — Shopping Basket
+Manages customer cart items:
+- Lists selected cakes, unit prices, and quantity controls (`+` / `-`).
+- Calculates order totals dynamically.
+- Features a **Secure Checkout** button that places the order via `order-service` and clears the cart.
 
-**`admin.html` — Admin Dashboard**
-Only accessible if you're logged in as an admin. Has a sidebar with five tabs: Overview (stats), All Orders, Catalog Management, All Ratings, and All Notifications. The catalog management tab lets admins add new cakes, edit existing ones, and delete them. Customers who try to access this page get redirected.
+### `auth.html` — Authentication & OTP Flow
+Handles user login and role assignment:
+- Requests one-time passwords (OTP) sent to user email.
+- Includes a **Quick Demo Login** section with single-click Admin and Customer login presets.
 
-## How authentication works
+### `admin.html` — Admin Dashboard
+Admin control panel restricted to accounts with `admin` role:
+- **Overview**: High-level platform statistics and system metrics.
+- **Orders**: View all submitted customer orders and order status.
+- **Catalog Management**: Full CRUD operations (Add, Edit, Delete cakes in `catalog-service`).
+- **Ratings**: Moderate and review all customer ratings.
+- **Notifications**: Inspect sent notification history.
 
-When you log in, the gateway gives back a JWT token. That token gets stored in `localStorage` alongside your userId and role. Every request to a protected endpoint includes the token as a `Bearer` header.
+---
 
-The gateway checks the token before forwarding anything to the services. If the token's missing or invalid, the request comes back as 401. If the token's valid but you're a customer trying to hit an admin-only route, it comes back as 403.
+## 🔐 Authentication & Security
 
-The frontend also checks your role locally on page load to show or hide things — for example, the Admin link only shows up in the navbar if you're logged in as admin, and the basket and notification bell only show up for customers.
+- **JWT Tokens**: Upon successful OTP login, the API Gateway returns a JWT token.
+- **Local Storage**: Credentials are cached in `localStorage` under `cd_token`, `cd_userId`, and `cd_role`.
+- **Authorization Headers**: Protected requests attach the JWT as `Authorization: Bearer <token>`.
+- **Role Enforcement**:
+  - Gateway responds with `401 Unauthorized` for missing/invalid tokens.
+  - Gateway responds with `403 Forbidden` for non-admin attempts on restricted endpoints.
+  - Frontend dynamically toggles UI controls (e.g., Admin Dashboard link, Shopping Basket, Notification Bell) based on session role.
 
-## Role separation
+---
 
-Customers see:
-- Catalog (browse, filter, add to basket, rate)
-- Their own basket
-- Their own order notifications in the bell dropdown
+## 🔔 Notification Bell
 
-Admins see:
-- The admin dashboard with all orders, all notifications, all ratings
-- Catalog management (add/edit/delete cakes)
-- They don't get a basket — they're not supposed to be shopping
+For logged-in customers, a notification bell icon appears in the top navigation bar:
+- Badge counter displays unread order notifications.
+- Dropdown menu lists recent order confirmations.
+- Notifications are created asynchronously when `order-service` emits checkout events over RabbitMQ, which are processed by `notification-service`.
 
-## Notification bell
+---
 
-When you're logged in as a customer, there's a bell icon in the top navbar. The number badge shows how many notifications you have. Clicking it opens a dropdown showing your order confirmations — each one shows the order ID, channel (email), and when it was sent. You can hit Refresh to pull the latest ones.
-
-These notifications come from the notification-service via RabbitMQ — they're created in the background when checkout happens, not when you add something to the basket.
-
-## File structure
+## 📁 File Structure
 
 ```
 client/
-  index.html      Catalog page
-  basket.html     Shopping basket
-  auth.html       Login / OTP flow
-  admin.html      Admin dashboard
-  app.js          All customer-facing logic — catalog, basket, auth, notifications, ratings
-  admin.js        All admin-specific logic — dashboard tabs, catalog CRUD, data tables
-  style.css       All styles — design system variables, component styles, layouts
+├── index.html      # Main product catalog & filter page
+├── basket.html     # Shopping basket & checkout page
+├── auth.html       # Login page & OTP authentication flow
+├── admin.html      # Admin dashboard & catalog management
+├── app.js          # Customer-facing app logic (catalog, cart, ratings, auth)
+├── admin.js        # Admin dashboard logic (stats, CRUD, tables)
+├── style.css       # Global design system & component styles
+├── Dockerfile      # Nginx container deployment setup
+└── README.md       # Client documentation
 ```
 
-## Talking to the API
+---
 
-All API calls go to `http://localhost:8080/api/...`. The gateway routes them:
+## 🌐 API Gateway Integration
 
-| Frontend calls | Goes to |
-|---|---|
-| `/api/cakes` | catalog-service |
-| `/api/basket` | order-service |
-| `/api/orders` | order-service |
-| `/api/ratings` | rating-service |
-| `/api/notifications` | notification-service |
-| `/auth/...` | gateway (handles login + OTP) |
+All frontend API calls are routed through the API Gateway:
 
-If the gateway is running somewhere other than `localhost:8080` (e.g. in Kubernetes with port-forwarding), `app.js` has an `API_BASE` constant near the top that you'd update.
+| Route Endpoint | Target Microservice | Description |
+|---|---|---|
+| `/api/cakes` | `catalog-service` | Catalog browsing, cake details, CRUD operations |
+| `/api/basket` | `order-service` | Shopping cart management |
+| `/api/orders` | `order-service` | Order placement & checkout processing |
+| `/api/ratings` | `rating-service` | Cake rating submissions & average score calculations |
+| `/api/notifications` | `notification-service` | Customer order notification retrieval |
+| `/api/auth/...` | `gateway` | Login request, OTP verification, and JWT issuance |
+
+### Gateway Port Configuration
+- **Kubernetes Environment**: Gateway is available on NodePort `30080` (configured in `app.js` and `admin.js` as `http://${window.location.hostname}:30080`).
+- **Docker / Local Development**: Gateway runs on port `8080` (`http://localhost:8080`). Update `GATEWAY_BASE` in `app.js` and `admin.js` if running in standard Docker mode.
+
+---
+
+## 🚀 Running the Client
+
+### Via Docker
+```bash
+docker build -t cakedelight-client .
+docker run -d -p 80:80 cakedelight-client
+```
+
+### Locally (Static Web Server)
+
+# Using Node npx serve
+npx serve .
+```
+Access the application at `http://localhost:8000` (or `http://localhost:80` for Docker).

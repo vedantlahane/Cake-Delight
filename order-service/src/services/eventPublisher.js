@@ -3,10 +3,16 @@ const amqp = require('amqplib');
 let connection = null;
 let channel = null;
 
-const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://localhost:5672';
-const EXCHANGE_NAME = 'order_events';
+// Constants for RabbitMQ connection and exchange details
+const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://localhost:5672'; // Default RabbitMQ URL if not provided in environment variables
+const EXCHANGE_NAME = 'order_events'; // Name of the exchange to publish order events
 const ROUTING_KEY = 'order.completed';
 
+
+/**
+ * Connects to RabbitMQ and creates a channel.
+ * @returns {Promise<Channel|null>} The RabbitMQ channel or null if connection fails.
+ */
 async function connectRabbitMQ() {
     if (channel) return channel;
     try {
@@ -21,6 +27,11 @@ async function connectRabbitMQ() {
     }
 }
 
+/**
+ * Publishes an order completed event to RabbitMQ.
+ * @param {Object} orderData - The data for the completed order.
+ * @returns {Promise<boolean>} A promise resolving to true if the event was published successfully, false otherwise.
+ */
 async function publishOrderCompleted(orderData) {
     try {
         const ch = await connectRabbitMQ();

@@ -6,6 +6,11 @@ const EXCHANGE_NAME = 'order_events';
 const ROUTING_KEY = 'order.completed';
 const QUEUE_NAME = 'notification_order_queue';
 
+/**
+ * Asynchronously connects to the RabbitMQ message broker and sets up a consumer for order completion events.
+ * The consumer listens for messages on the specified queue and processes them to create notifications.
+ * If the connection or channel setup fails, it retries the connection after a delay.
+ */
 async function connectConsumer() {
     try {
         const connection = await amqp.connect(RABBITMQ_URL);

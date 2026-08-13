@@ -1,6 +1,13 @@
 const axios = require('axios');
 const Basket = require('../models/Basket');
 
+/**
+ * Retrieves the basket for a specific user.
+ * @param {Object} req - The request object containing the userId parameter.
+ * @param {Object} res - The response object used to send the basket data.
+ * @param {Function} next - The next middleware function for error handling.
+ * @returns {void}
+ */
 exports.getBasket = async (req, res, next) => {
     try {
         const basket = await Basket.findOne({
@@ -11,8 +18,15 @@ exports.getBasket = async (req, res, next) => {
     catch (err) {
         next(err);
     }
-};
+};  
 
+/**
+ * Adds an item to the user's basket.
+ * @param {Object} req - The request object containing the cakeId and quantity in the body.
+ * @param {Object} res - The response object used to send the updated basket data.
+ * @param {Function} next - The next middleware function for error handling.
+ * @returns {void}
+ */
 exports.addItem = async (req, res, next) => {
     try {
         const { cakeId, quantity } = req.body;
@@ -55,6 +69,13 @@ exports.addItem = async (req, res, next) => {
     }
 };
 
+/**
+ * Updates the quantity of an item in the user's basket.
+ * @param {Object} req - The request object containing the quantity in the body and userId and cakeId in the params.
+ * @param {Object} res - The response object used to send the updated basket data.
+ * @param {Function} next - The next middleware function for error handling.
+ * @returns {void}
+ */
 exports.updateItem = async (req, res, next) => {
     try {
         const { quantity } = req.body;
@@ -74,6 +95,13 @@ exports.updateItem = async (req, res, next) => {
     }
 };
 
+/**
+ * Removes an item from the user's basket.
+ * @param {Object} req - The request object containing the userId and cakeId in the params.
+ * @param {Object} res - The response object used to send the updated basket data.
+ * @param {Function} next - The next middleware function for error handling.
+ * @returns {void}
+ */
 exports.removeItem = async (req, res, next) => {
     try {
         const { userId, cakeId } = req.params;
@@ -88,4 +116,4 @@ exports.removeItem = async (req, res, next) => {
     catch (err) {
         next(err);
     }
-};
+};

@@ -1,7 +1,8 @@
+# MongoDB Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mongodb
+  name: mongodb 
   namespace: cake-delight
   labels:
     app: mongodb
@@ -28,6 +29,7 @@ spec:
               memory: "512Mi"
               cpu: "500m"
 ---
+# MongoDB Service
 apiVersion: v1
 kind: Service
 metadata:

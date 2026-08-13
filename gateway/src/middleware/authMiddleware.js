@@ -1,4 +1,12 @@
 const jwt = require('jsonwebtoken');
+/**
+ * Verifies the JWT bearer token in the Authorization header and attaches the decoded user payload to req.user.
+ *
+ * @param {object} req - Express request object containing the Authorization header.
+ * @param {object} res - Express response object used to return authentication errors.
+ * @param {function} next - Express next middleware function.
+ * @returns {void}
+ */
 function authMiddleware(req,res,next){
     const authHeadder = req.headers.authorization;
     if(!authHeadder || !authHeadder.startsWith('Bearer ')){

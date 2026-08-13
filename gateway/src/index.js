@@ -39,6 +39,14 @@ app.use('/api/cakes', (req, res, next) => {
 // =============================================================
 // ORDER SERVICE — /api/basket  (auth required)
 // =============================================================
+/**
+ * Middleware to proxy requests to the Order Service's basket endpoints.
+ * Requires authentication via JWT. Attaches userId and role headers to the proxied request.
+ * @param {object} req - Express request object containing the Authorization header.
+ * @param {object} res - Express response object used to return authentication errors.
+ * @param {function} next - Express next middleware function.
+ * @returns {void}
+ */
 app.use('/api/basket', authMiddleware, createProxyMiddleware({
     target: process.env.ORDER_SERVICE_URL || 'http://localhost:3001',
     changeOrigin: true,
@@ -129,6 +137,10 @@ app.get('/api/notifications', adminMiddleware, createProxyMiddleware({
     }
 }));
 
+/**
+ * Middleware to proxy requests to the Notification Service's endpoints.
+ * Requires authentication via JWT. Attaches userId and role headers to the proxied request.
+ */
 app.use('/api/notifications', authMiddleware, createProxyMiddleware({
     target: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3003',
     changeOrigin: true,

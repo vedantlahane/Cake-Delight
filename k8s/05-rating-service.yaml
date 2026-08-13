@@ -25,7 +25,7 @@ spec:
             - name: PORT
               value: "3002"
             - name: MONGODB_URI
-              value: "mongodb://mongodb.cake-delight.svc.cluster.local:27017/cakedelight-rating"
+              value: "mongodb://mongodb.cake-delight.svc.cluster.local:27017/cakedelight-rating" # cadelight-rating is the name of the database for the rating service, this provide the logical separation of data between the catalog, rating and other services. 
           resources:
             requests:
               memory: "128Mi"

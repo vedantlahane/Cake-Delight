@@ -1,5 +1,11 @@
 const Notification = require('../models/Notification');
 
+/**
+ * Retrieves all notifications from the database.
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @param {Function} next - The next middleware function.
+ */
 exports.getAllNotifications = async (req, res, next) => {
     try {
         const notifications = await Notification.find().sort({ createdAt: -1 });
@@ -9,6 +15,12 @@ exports.getAllNotifications = async (req, res, next) => {
     }
 };
 
+/**
+ * Retrieves the status of notifications for a specific user.
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @param {Function} next - The next middleware function.
+ */
 exports.getNotificationStatus = async (req, res, next) => {
     try {
         const { userId } = req.params;
@@ -19,4 +31,4 @@ exports.getNotificationStatus = async (req, res, next) => {
     catch (err) {
         next(err);
     }
-};
+};

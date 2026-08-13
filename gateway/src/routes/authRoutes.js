@@ -17,6 +17,8 @@ const transporter = nodemailer.createTransport({
 /**
  * Determine role based on userId (email)
  * Any userId containing 'admin' gets admin role.
+ * @param {string} userId - The user identifier (email).
+ * @returns {string} - Returns 'admin' or 'customer'.
  */
 function resolveRole(userId) {
     return userId.toLowerCase().includes('admin') ? 'admin' : 'customer';
